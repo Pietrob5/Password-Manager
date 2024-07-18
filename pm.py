@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 import base64
 import sys
 import signal
-
+import getpass
 
 # Funzione per generare una chiave di cifratura basata sulla MASTER PASSWORD
 def generate_key(password, salt):
@@ -16,8 +16,7 @@ def generate_key(password, salt):
 def create_db():
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS passwords
-                 (id INTEGER PRIMARY KEY, service TEXT, email TEXT, encrypted_password BLOB, note TEXT, salt BLOB)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT, email TEXT, encrypted_password BLOB, note TEXT, salt BLOB)''')
     conn.commit()
     conn.close()
 
@@ -197,6 +196,31 @@ def delete_all(master_password):
     print("Tutte le entry sono state eliminate.")
 
 
+def find_by_mail(email, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT service, email, encrypted_password, note, salt FROM passwords WHERE email = ? ORDER BY service", (email,))
+
+    rows = c.fetchall()
+    conn.close()
+    if len(rows) == 0:
+        print(f"L'account {email} non è collegato a nessun servizio.\n")
+    for row in rows:
+        service, email, encrypted_password, note, salt = row
+
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
+            print(f"Email: {email}, Servizio: {service}, Password: {decrypted_password}, Note: {note}")
+        except Exception as e:
+            # Se la decrittazione fallisce, la master password è errata o c'è un errore nei dati
+            print(f"Errore nella decifratura per il servizio {service} e l'email {email}.")
+            continue    
+
+
+
 
 def signal_handler(sig, frame):
     print("\n\nProgramma terminato dall'utente.")
@@ -209,7 +233,7 @@ if __name__ == "__main__":
 
     while True:
         print('\n')
-        resp = input("Cosa vuoi fare?\n1- inserire nuove credenziali\n2- cercare una password già inserita\n3- modificare una password\n4- eliminare una password\n5- visualizzare l'intero database\n6- eliminare il database\ni- info\nQ- esci\n\n---------------------------------------------------------\n")
+        resp = input("Cosa vuoi fare?\n1- inserire nuove credenziali\n2- cercare una password già inserita\n3- modificare una password\n4- eliminare una password\n5- visualizzare l'intero database\n6- trovare tutti gli i servizi collegati a un account (mail o user)\n7- eliminare il database\ni- info\nQ- esci\n\n---------------------------------------------------------\n")
         print("---------------------------------------------------------")
 
         if resp.lower() == 'q':
@@ -217,13 +241,15 @@ if __name__ == "__main__":
         
         elif resp == '1':
             print("Inserimento nuova password")
-            master_password = input("Inserisci la MASTER PASSWORD: ")
-            master_password_confermation = input("Inserisci nuovamente la MASTER PASSWORD per conferma: ")
+
+            master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
+            master_password_confermation = getpass.getpass(prompt="Inserisci nuovamente la MASTER PASSWORD per conferma: ")
+
 
             while master_password_confermation != master_password:
                 print("\nLe MASTER PASSWORD inserite non combaciano.")
-                master_password = input("Inserisci la MASTER PASSWORD: ")
-                master_password_confermation = input("Inserisci nuovamente la MASTER PASSWORD per conferma: ")
+                master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
+                master_password_confermation = getpass.getpass(prompt="Inserisci nuovamente la MASTER PASSWORD per conferma: ")
 
 
             service_name = input("Inserisci il nome del servizio: ")
@@ -237,7 +263,7 @@ if __name__ == "__main__":
         elif resp == '2':
             print("Cerca una password")
 
-            master_password = input("Inserisci la MASTER PASSWORD: ")
+            master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
             service_name = input("Inserisci il nome del servizio per recuperare la password: ")
             mails = get_mails(service_name)
 
@@ -250,7 +276,7 @@ if __name__ == "__main__":
                 retrieved_note = get_note(service_name, retrieved_mail)[0]
 
                 if retrieved_password:
-                    print(f"La password per {service_name} e l'email {retrieved_mail} è: {retrieved_password}")
+                    print(f"La password per l'account {retrieved_mail} di {service_name} è: {retrieved_password}")
                     if retrieved_note == "":
                         print("Non ci sono note")
                     else:
@@ -260,7 +286,7 @@ if __name__ == "__main__":
                     print("MASTER PASSWORD errata o errore nella decifratura.")
             else:
                 print(f"Esistono più account per il servizio {service_name}.")
-                print("Scegli l'email per cui recuperare la password:")
+                print("Scegli quello per cui recuperare la password:")
                 for index, mail in enumerate(mails, start=1):
                     print(f"{index}. {mail}")
 
@@ -272,7 +298,7 @@ if __name__ == "__main__":
                         retrieved_note = get_note(service_name, retrieved_mail)[0]
 
                         if retrieved_password:
-                            print(f"La password per {service_name} e l'email {retrieved_mail} è: {retrieved_password}")
+                            print(f"La password per l'account {retrieved_mail} di {service_name} è: {retrieved_password}")
                             if retrieved_note == "":
                                 print("Non ci sono note")
                             else:
@@ -287,7 +313,7 @@ if __name__ == "__main__":
 
         elif resp == '3':
             print("Modifica di una password")
-            master_password = input("Inserisci la MASTER PASSWORD: ")
+            master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
 
             old_service = input("Inserisci il servizio da modificare: ")
             old_email = input("Inserisci il vecchio account da modificare: ")
@@ -305,7 +331,7 @@ if __name__ == "__main__":
 
         elif resp == '4':
             print("Eliminazione di una password")
-            master_password = input("Inserisci la MASTER PASSWORD: ")
+            master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
 
             service_name = input("Inserisci il nome del servizio: ")
             email = input("Inserisci la mail dell'account da eliminare: ")
@@ -321,32 +347,28 @@ if __name__ == "__main__":
 
         elif resp == '5':
             print("Visualizza tutto il database")
-            master_password = input("Inserisci la MASTER PASSWORD: ")
+            master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
             print_all(master_password)
             print("---------------------------------------------------------")  
 
         elif resp == '6':
-            master_password = input("Inserisci la MASTER PASSWORD: ")
+            print("Visualizza tutti i servizi collegati allo stesso account")
+            mail = input("Inserisci account da cercare: ")
+            master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
+            find_by_mail(mail, master_password)
+            
+
+
+
+        elif resp == '7':
+            print("Elimina tutto il database")
+
+            master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
 
             print("ATTENZIONE! Questa operazione è IRREVERSIBILE. I dati andranno persi.")
             safety = input("Sei sicuro di voler eliminare l'intero database? Premi Y per continuare, qualsiasi altro tasto per annullare: ")
             if safety.lower() == 'y':
                 delete_all(master_password)
-                
-
-        # elif resp == '6':
-        #     print("Eliminazione del database")
-        #     master_password = input("Inserisci la MASTER PASSWORD: ")
-
-        #     service_name = input("Inserisci il nome del servizio: ")
-        #     email = input("Inserisci la mail dell'account da eliminare: ")
-        #     password = input("Inserisci la password per confermare: ")
-
-        #     if get_password(service_name, email, master_password) == password:
-        #         remove_entry(service_name, email, master_password)
-        #     else:
-        #         print("Password errata. Impossibile eliminare l'entry.")
-        #     print("---------------------------------------------------------")
 
         elif resp.lower() == 'i':
             print("Scegli il servizio desiderato inserendo il numero corrispondente.")

@@ -3,6 +3,8 @@ import bcrypt
 from cryptography.fernet import Fernet
 import base64
 import sys
+import signal
+
 
 # Funzione per generare una chiave di cifratura basata sulla MASTER PASSWORD
 def generate_key(password, salt):
@@ -144,13 +146,70 @@ def modify_entry(old_service, old_email, old_password, new_service, new_email, n
     else:
         print("Nessuna entry da modificare trovata corrispondente ai parametri specificati.")
 
-# Esempio d'uso
+
+def print_all(master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT service, email, encrypted_password, note, salt FROM passwords ORDER BY service")
+    rows = c.fetchall()
+    conn.close()
+    if len(rows) == 0:
+        print("Il database è vuoto.\n")
+    for row in rows:
+        service, email, encrypted_password, note, salt = row
+
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
+            print(f"Servizio: {service}, Email: {email}, Password: {decrypted_password}, Note: {note}")
+        except Exception as e:
+            # Se la decrittazione fallisce, la master password è errata o c'è un errore nei dati
+            print(f"Errore nella decifratura per il servizio {service} e l'email {email}.")
+            continue    
+
+
+def delete_all(master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT service, email, encrypted_password, salt FROM passwords")
+    rows = c.fetchall()
+
+    for row in rows:
+        service, email, encrypted_password, salt = row
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            # Prova a decrittare la password con la master password fornita
+            cipher_suite.decrypt(encrypted_password).decode()
+        except Exception as e:
+            # Se fallisce la decifratura, significa che la master password è errata
+            print("MASTER PASSWORD errata. Operazione annullata.")
+            conn.close()
+            return
+    
+    # Se tutte le decrittazioni hanno successo, elimina tutte le entry
+    c.execute("DELETE FROM passwords")
+    conn.commit()
+    conn.close()
+    print("Tutte le entry sono state eliminate.")
+
+
+
+def signal_handler(sig, frame):
+    print("\n\nProgramma terminato dall'utente.")
+    sys.exit(0)
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
     create_db()
     print("---------------------------------------------------------")
 
     while True:
-        resp = input("Cosa vuoi fare?\n1- inserire nuove credenziali\n2- cercare una password già inserita\n3- modificare una password\n4- eliminare una password\n5- eliminare il database\ni- info\nQ- esci\n---------------------------------------------------------\n")
+        print('\n')
+        resp = input("Cosa vuoi fare?\n1- inserire nuove credenziali\n2- cercare una password già inserita\n3- modificare una password\n4- eliminare una password\n5- visualizzare l'intero database\n6- eliminare il database\ni- info\nQ- esci\n\n---------------------------------------------------------\n")
         print("---------------------------------------------------------")
 
         if resp.lower() == 'q':
@@ -159,6 +218,13 @@ if __name__ == "__main__":
         elif resp == '1':
             print("Inserimento nuova password")
             master_password = input("Inserisci la MASTER PASSWORD: ")
+            master_password_confermation = input("Inserisci nuovamente la MASTER PASSWORD per conferma: ")
+
+            while master_password_confermation != master_password:
+                print("\nLe MASTER PASSWORD inserite non combaciano.")
+                master_password = input("Inserisci la MASTER PASSWORD: ")
+                master_password_confermation = input("Inserisci nuovamente la MASTER PASSWORD per conferma: ")
+
 
             service_name = input("Inserisci il nome del servizio: ")
             email = input("Inserisci la mail del nuovo account: ")
@@ -228,6 +294,7 @@ if __name__ == "__main__":
             old_password = input("Inserisci la vecchia password da modificare: ")
             old_note = get_note(old_service, old_email)[0]
 
+            print()
             new_service = input("Inserisci il nuovo servizio: ")
             new_email = input("Inserisci il nuovo account: ")
             new_password = input(f"Inserisci la nuova password per l'account {new_email}: ")
@@ -243,7 +310,7 @@ if __name__ == "__main__":
             service_name = input("Inserisci il nome del servizio: ")
             email = input("Inserisci la mail dell'account da eliminare: ")
             password = input(f"Inserisci la password dell'account {email} per confermare: ")
-            safety = input("Sei sicuro di voler eliminare la password dell'account {email}? Premi Y per continuare, qualsiasi altro tasto per annullare.")
+            safety = input(f"Sei sicuro di voler eliminare la password dell'account {email}? Premi Y per continuare, qualsiasi altro tasto per annullare: ")
             if safety.lower() == 'y':
                 if get_password(service_name, email, master_password) == password:
                     remove_entry(service_name, email, master_password)
@@ -251,7 +318,23 @@ if __name__ == "__main__":
                     print("Password errata. Impossibile eliminare l'entry.")
             print("---------------------------------------------------------")
 
-        # elif resp == '5':
+
+        elif resp == '5':
+            print("Visualizza tutto il database")
+            master_password = input("Inserisci la MASTER PASSWORD: ")
+            print_all(master_password)
+            print("---------------------------------------------------------")  
+
+        elif resp == '6':
+            master_password = input("Inserisci la MASTER PASSWORD: ")
+
+            print("ATTENZIONE! Questa operazione è IRREVERSIBILE. I dati andranno persi.")
+            safety = input("Sei sicuro di voler eliminare l'intero database? Premi Y per continuare, qualsiasi altro tasto per annullare: ")
+            if safety.lower() == 'y':
+                delete_all(master_password)
+                
+
+        # elif resp == '6':
         #     print("Eliminazione del database")
         #     master_password = input("Inserisci la MASTER PASSWORD: ")
 
@@ -269,9 +352,10 @@ if __name__ == "__main__":
             print("Scegli il servizio desiderato inserendo il numero corrispondente.")
             print("ATTENZIONE: devi utilizzare la stessa MASTER PASSWORD sia per l'inserimento che per la ricerca di una password, altrimenti non sarà possibile erogare il servizio!")
             print("Dovrai ricordarti a memoria la MASTER PASSWORD, la quale non potrà essere inserita nel database.")
+            print("Nel campo email puoi inserire sia il classico indirizzo di posta elettronica usato per quell'account oppure Nome Utente o UserID.")
             print("Puoi modificare il servizio, la mail, la password e/o le note di ogni entry. L'operazione SOVRASCRIVE i vecchi dati.")
             print("Puoi eliminare una entry confermandone servizio, mail e password perdendo DEFINITIVAMENTE le rispettive informazioni.")
             print("---------------------------------------------------------\n")
 
         else:
-            print("Inserisci un input valido tra 1, 2, 3, 4 o Q")
+            print("Inserisci un input valido tra 1, 2, 3, 4 o Q.")

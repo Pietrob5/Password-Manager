@@ -75,28 +75,20 @@ python password_manager.py
 
 ### Important Notes
 
-- **Master Password**: Each database should use a single master password for consistency. The master password is not stored anywhere and must be remembered by the user.
+- **Master Password**: Each database should use a single master password for consistency. The master password is not stored anywhere and must be remembered by the user. It is unique for each user.
 - **Data Integrity**: Entering an incorrect master password when adding or modifying an entry can corrupt the database.
 - **Irreversible Actions**: Deleting entries or the entire database is irreversible. Ensure you have the correct master password and service details before performing these actions.
+- **Encryption**: Passwords are encrypted using the `cryptography.fernet` module with AES encryption.
+- **Salt**: A unique salt is generated for each password entry to ensure security.
+- **Master Password Input**: For every operation, you will be prompted to enter the master password. If the master password is entered incorrectly, the program will return an error and allow you to repeat the operation, except when inserting a new password (option 1). In this case, the master password must be entered twice for confirmation.
+- **Critical Warning**: Entering the wrong master password when inserting data can irreversibly damage the entire database.
+- **Service Input**: Service inputs are converted to lowercase for more friendly searches. Other fields like master password, email/account name, password, and notes are case sensitive.
+- **Password Input**: The `strip()` method is used for password inputs to remove any leading or trailing spaces or tabs.
+- **Uniqueness Constraint**: The same service with the same account cannot be inserted multiple times, even with different passwords.
+
 
 ### Security Considerations
 
-- **Encryption**: Passwords are encrypted using the `cryptography.fernet` module with AES encryption.
-- **Salt**: A unique salt is generated for each password entry to ensure security.
-- **Master Password**: The master password is essential for encrypting and decrypting passwords and should be kept secure.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
-
-## Contact
-
-For any questions or issues, please open an issue on GitHub or contact me at [your-email@example.com].
-
----
-
-Thank you for using this password manager! Remember to keep your master password secure and never share it with anyone.
+- **Encryption**: Utilizes the `cryptography.fernet` module with AES in CBC mode and an HMAC to ensure message integrity.
+- **Key Generation**: Uses the master password and a unique salt to generate encryption keys.
+- **Data Security**: Ensures that passwords are securely encrypted and only accessible with the correct master password.

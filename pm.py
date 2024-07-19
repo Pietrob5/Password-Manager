@@ -1,10 +1,20 @@
-import sqlite3
-import bcrypt
-from cryptography.fernet import Fernet
+import sqlite3 
+import bcrypt # type: ignore
+from cryptography.fernet import Fernet # type: ignore
 import base64
 import sys
 import signal
 import getpass
+# import hashlib
+
+
+# def hash_master_password(master_password):
+#     return hashlib.sha256(master_password.encode()).digest()
+
+# def generate_key(password, salt):
+#     password_hash = hash_master_password(password)
+#     key = bcrypt.kdf(password_hash, salt, 32, 100)
+#     return base64.urlsafe_b64encode(key)
 
 # Funzione per generare una chiave di cifratura basata sulla MASTER PASSWORD
 def generate_key(password, salt):
@@ -12,7 +22,6 @@ def generate_key(password, salt):
     key = bcrypt.kdf(password, salt, 32, 100)
     return base64.urlsafe_b64encode(key)
 
-# Crea il database e la tabella se non esistono
 def create_db():
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
@@ -20,7 +29,6 @@ def create_db():
     conn.commit()
     conn.close()
 
-# Verifica se esiste già una password nel database con lo stesso service e email
 def password_exists(service, email):
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
@@ -29,7 +37,6 @@ def password_exists(service, email):
     conn.close()
     return count > 0
 
-# Aggiungi una nuova password cifrata al database
 def add_password(service, email, password, note, master_password):
     if password_exists(service, email):
         print(f"Esiste già l'account {email} per il servizio {service}.")
@@ -45,11 +52,12 @@ def add_password(service, email, password, note, master_password):
               (service, email, encrypted_password, note, salt))
     conn.commit()
     conn.close()
-    print("PASSWORD AGGIUNTA")
+    print("PASSWORD AGGIUNTA o AGGIORNATA.")
     return 1
 
 
-# Recupera e decifra una password dal database
+
+
 def get_password(service, email, master_password):
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
@@ -88,7 +96,6 @@ def get_note(service, email):
     conn.close()
     return result if result else ""
 
-# Recupera tutte le email associate a un service_name
 def get_mails(service):
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
@@ -97,7 +104,7 @@ def get_mails(service):
     conn.close()
     return [result[0] for result in results]
 
-# Rimuove un'entry dal database
+
 def remove_entry(service, email, master_password):
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
@@ -164,7 +171,6 @@ def print_all(master_password):
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
             print(f"Servizio: {service}, Email: {email}, Password: {decrypted_password}, Note: {note}")
         except Exception as e:
-            # Se la decrittazione fallisce, la master password è errata o c'è un errore nei dati
             print(f"Errore nella decifratura per il servizio {service} e l'email {email}.")
             continue    
 
@@ -181,15 +187,12 @@ def delete_all(master_password):
         cipher_suite = Fernet(key)
 
         try:
-            # Prova a decrittare la password con la master password fornita
             cipher_suite.decrypt(encrypted_password).decode()
         except Exception as e:
-            # Se fallisce la decifratura, significa che la master password è errata
             print("MASTER PASSWORD errata. Operazione annullata.")
             conn.close()
             return
     
-    # Se tutte le decrittazioni hanno successo, elimina tutte le entry
     c.execute("DELETE FROM passwords")
     conn.commit()
     conn.close()
@@ -215,7 +218,6 @@ def find_by_mail(email, master_password):
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
             print(f"Email: {email}, Servizio: {service}, Password: {decrypted_password}, Note: {note}")
         except Exception as e:
-            # Se la decrittazione fallisce, la master password è errata o c'è un errore nei dati
             print(f"Errore nella decifratura per il servizio {service} e l'email {email}.")
             continue    
 
@@ -232,7 +234,6 @@ if __name__ == "__main__":
     print("---------------------------------------------------------")
 
     while True:
-        print('\n')
         resp = input("Cosa vuoi fare?\n1- inserire nuove credenziali\n2- cercare una password già inserita\n3- modificare una password\n4- eliminare una password\n5- visualizzare l'intero database\n6- trovare tutti gli i servizi collegati a un account (mail o user)\n7- eliminare il database\ni- info\nQ- esci\n\n---------------------------------------------------------\n")
         print("---------------------------------------------------------")
 
@@ -252,10 +253,10 @@ if __name__ == "__main__":
                 master_password_confermation = getpass.getpass(prompt="Inserisci nuovamente la MASTER PASSWORD per conferma: ")
 
 
-            service_name = input("Inserisci il nome del servizio: ")
+            service_name = input("Inserisci il nome del servizio: ").lower()
             email = input("Inserisci la mail del nuovo account: ")
-            password = input(f"Inserisci la password per l'account {email}: ")
-            note = input("Inserisci eventuali note: ")
+            password = input(f"Inserisci la password per l'account {email}: ").strip()
+            note = input("Inserisci eventuali note: \n")
 
             add_password(service_name, email, password, note, master_password)
             print("---------------------------------------------------------")
@@ -264,7 +265,7 @@ if __name__ == "__main__":
             print("Cerca una password")
 
             master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
-            service_name = input("Inserisci il nome del servizio per recuperare la password: ")
+            service_name = input("Inserisci il nome del servizio per recuperare la password: ").lower()
             mails = get_mails(service_name)
 
             if not mails:
@@ -315,15 +316,15 @@ if __name__ == "__main__":
             print("Modifica di una password")
             master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
 
-            old_service = input("Inserisci il servizio da modificare: ")
+            old_service = input("Inserisci il servizio da modificare: ").lower()
             old_email = input("Inserisci il vecchio account da modificare: ")
-            old_password = input("Inserisci la vecchia password da modificare: ")
+            old_password = input("Inserisci la vecchia password da modificare: ").strip()
             old_note = get_note(old_service, old_email)[0]
 
             print()
-            new_service = input("Inserisci il nuovo servizio: ")
+            new_service = input("Inserisci il nuovo servizio: ").lower()
             new_email = input("Inserisci il nuovo account: ")
-            new_password = input(f"Inserisci la nuova password per l'account {new_email}: ")
+            new_password = input(f"Inserisci la nuova password per l'account {new_email}: ").strip()
             new_note = input("Inserisci le nuove note: ") or old_note
 
             modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)
@@ -333,9 +334,9 @@ if __name__ == "__main__":
             print("Eliminazione di una password")
             master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
 
-            service_name = input("Inserisci il nome del servizio: ")
+            service_name = input("Inserisci il nome del servizio: ").lower()
             email = input("Inserisci la mail dell'account da eliminare: ")
-            password = input(f"Inserisci la password dell'account {email} per confermare: ")
+            password = input(f"Inserisci la password dell'account {email} per confermare: ").strip()
             safety = input(f"Sei sicuro di voler eliminare la password dell'account {email}? Premi Y per continuare, qualsiasi altro tasto per annullare: ")
             if safety.lower() == 'y':
                 if get_password(service_name, email, master_password) == password:
@@ -381,3 +382,5 @@ if __name__ == "__main__":
 
         else:
             print("Inserisci un input valido tra 1, 2, 3, 4 o Q.")
+
+        # print("#########################################################\n")

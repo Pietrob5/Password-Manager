@@ -12,19 +12,6 @@ This project is a password manager application written in Python. It allows user
 - **Find Services by Email**: List all services associated with a particular email.
 - **Delete All Entries**: Remove all entries from the database.
 
-## Prerequisites
-
-- Python 3.x
-- Required Python modules: `sqlite3`, `bcrypt`, `cryptography`, `getpass`
-
-
-
-## Usage
-
-Run the script:
-```bash
-python password_manager.py
-```
 
 ### Menu Options
 

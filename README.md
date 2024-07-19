@@ -17,18 +17,7 @@ This project is a password manager application written in Python. It allows user
 - Python 3.x
 - Required Python modules: `sqlite3`, `bcrypt`, `cryptography`, `getpass`
 
-## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/password-manager.git
-   cd password-manager
-   ```
-
-2. Install the required Python modules:
-   ```bash
-   pip install bcrypt cryptography
-   ```
 
 ## Usage
 

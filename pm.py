@@ -1,3 +1,4 @@
+
 import sqlite3 
 import bcrypt # type: ignore
 from cryptography.fernet import Fernet # type: ignore
@@ -234,6 +235,8 @@ if __name__ == "__main__":
     print("---------------------------------------------------------")
 
     while True:
+        print()
+        print()
         resp = input("Cosa vuoi fare?\n1- inserire nuove credenziali\n2- cercare una password già inserita\n3- modificare una password\n4- eliminare una password\n5- visualizzare l'intero database\n6- trovare tutti gli i servizi collegati a un account (mail o user)\n7- eliminare il database\ni- info\nQ- esci\n\n---------------------------------------------------------\n")
         print("---------------------------------------------------------")
 
@@ -256,8 +259,8 @@ if __name__ == "__main__":
             service_name = input("Inserisci il nome del servizio: ").lower()
             email = input("Inserisci la mail del nuovo account: ")
             password = input(f"Inserisci la password per l'account {email}: ").strip()
-            note = input("Inserisci eventuali note: \n")
-
+            note = input("Inserisci eventuali note: ")
+            print()
             add_password(service_name, email, password, note, master_password)
             print("---------------------------------------------------------")
 
@@ -354,8 +357,8 @@ if __name__ == "__main__":
 
         elif resp == '6':
             print("Visualizza tutti i servizi collegati allo stesso account")
-            mail = input("Inserisci account da cercare: ")
             master_password = getpass.getpass(prompt="Inserisci la MASTER PASSWORD: ")
+            mail = input("Inserisci account da cercare: ")
             find_by_mail(mail, master_password)
             
 

@@ -7,6 +7,7 @@ import sys
 import signal
 import getpass
 # import hashlib
+import pyperclip # type: ignore
 
 
 # def hash_master_password(master_password):
@@ -280,7 +281,10 @@ if __name__ == "__main__":
                 retrieved_note = get_note(service_name, retrieved_mail)[0]
 
                 if retrieved_password:
+                    print()
                     print(f"La password per l'account {retrieved_mail} di {service_name} è: {retrieved_password}")
+                    pyperclip.copy(retrieved_password)
+
                     if retrieved_note == "":
                         print("Non ci sono note")
                     else:
@@ -302,7 +306,10 @@ if __name__ == "__main__":
                         retrieved_note = get_note(service_name, retrieved_mail)[0]
 
                         if retrieved_password:
+                            print()
                             print(f"La password per l'account {retrieved_mail} di {service_name} è: {retrieved_password}")
+                            pyperclip.copy(retrieved_password)
+
                             if retrieved_note == "":
                                 print("Non ci sono note")
                             else:

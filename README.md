@@ -24,6 +24,7 @@ This project is a password manager application written in Python. It allows user
    - Prompts for the master password.
    - Asks for the service name.
    - Displays associated emails and retrieves the password for the selected email.
+   - Copies the password to clipboard automatically.
 
 3. **Modify an Existing Password**
    - Prompts for the master password.

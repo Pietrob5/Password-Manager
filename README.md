@@ -60,7 +60,7 @@ This project is a password manager application written in Python. It allows user
 - **Master Password Input**: For every operation, you will be prompted to enter the master password. If the master password is entered incorrectly, the program will return an error and allow you to repeat the operation, except when inserting a new password (option 1). In this case, the master password must be entered twice for confirmation.
 - **Critical Warning**: Entering the wrong master password when inserting data can irreversibly damage the entire database.
 - **Service Input**: Service inputs are converted to lowercase for more friendly searches. Other fields like master password, email/account name, password, and notes are case sensitive.
-- **Password Input**: The `strip()` method is used for password inputs to remove any leading or trailing spaces or tabs.
+- **Input Fields**: The `strip()` method is used for all inputs to remove any leading or trailing spaces or tabs. `lower()` is userd for Service name to avoid mistyping by the user.
 - **Uniqueness Constraint**: The same service with the same account cannot be inserted multiple times, even with different passwords.
 
 

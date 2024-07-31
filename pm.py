@@ -1,3 +1,4 @@
+
 import sqlite3 
 import bcrypt # type: ignore
 from cryptography.fernet import Fernet # type: ignore
@@ -25,35 +26,43 @@ def generate_key(password, salt):
 def create_db():
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT, email TEXT, encrypted_password BLOB, note TEXT, salt BLOB)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT, email TEXT, encrypted_password BLOB, note TEXT, salt BLOB, CONSTRAINT un1 UNIQUE (service, email))''')
     conn.commit()
     conn.close()
 
-def password_exists(service, email):
-    conn = sqlite3.connect('passwords.db')
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM passwords WHERE service = ? AND email = ?", (service, email))
-    count = c.fetchone()[0]
-    conn.close()
-    return count > 0
+# def password_exists(service, email):
+#     conn = sqlite3.connect('passwords.db')
+#     c = conn.cursor()
+#     c.execute("SELECT COUNT(*) FROM passwords WHERE service = ? AND email = ?", (service, email))
+#     count = c.fetchone()[0]
+#     conn.close()
+#     return count > 0
 
 def add_password(service, email, password, note, master_password):
-    if password_exists(service, email):
-        print(f"Account {email} for service {service} already exists.")
-        return 0
-    salt = bcrypt.gensalt()  # Genera un nuovo sale per ogni password
-    key = generate_key(master_password, salt)
-    cipher_suite = Fernet(key)
-    encrypted_password = cipher_suite.encrypt(password.encode())
+    # if password_exists(service, email):
+    #     print(f"Account '{email}' for service '{service}' already exists.")
+    #     return 0
+    try:
+        salt = bcrypt.gensalt()  # Genera un nuovo sale per ogni password
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        encrypted_password = cipher_suite.encrypt(password.encode())
 
-    conn = sqlite3.connect('passwords.db')
-    c = conn.cursor()
-    c.execute("INSERT INTO passwords (service, email, encrypted_password, note, salt) VALUES (?, ?, ?, ?, ?)",
-              (service, email, encrypted_password, note, salt))
-    conn.commit()
-    conn.close()
-    print("Password added or updated.")
-    return 1
+        conn = sqlite3.connect('passwords.db')
+        c = conn.cursor()
+
+        c.execute("INSERT INTO passwords (service, email, encrypted_password, note, salt) VALUES (?, ?, ?, ?, ?)",
+                  (service, email, encrypted_password, note, salt))
+        conn.commit()
+        print("Password added successfully.")
+
+    except sqlite3.IntegrityError as e:
+        print(f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
+        # print(f"Details: {e}")
+
+    finally:
+        conn.close()
+        return 1
 
 
 
@@ -121,7 +130,7 @@ def remove_entry(service, email, master_password):
             c.execute("DELETE FROM passwords WHERE service = ? AND email = ?", (service, email))
             conn.commit()
             conn.close()
-            print(f"Entry for service {service} and email {email} removed.")
+            print(f"Entry for service '{service}' and email '{email}' removed.")
         except Exception as e:
             print(f"Error in decrtpting: {e}")
     else:
@@ -169,9 +178,9 @@ def print_all(master_password):
 
         try:
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
-            print(f"Service: {service}, Email: {email}, Password: {decrypted_password}, Note: {note}")
+            print(f"Service: '{service}', Email: '{email}', Password: '{decrypted_password}', Note: {note}")
         except Exception as e:
-            print(f"Error in decrtpting for service {service} and email {email}.")
+            print(f"Error in decrtpting for service '{service}' and email '{email}'.")
             continue    
 
 
@@ -207,7 +216,7 @@ def find_by_mail(email, master_password):
     rows = c.fetchall()
     conn.close()
     if len(rows) == 0:
-        print(f"Account {email} is not linked to any service.\n")
+        print(f"Account '{email}' is not linked to any service.\n")
     for row in rows:
         service, email, encrypted_password, note, salt = row
 
@@ -216,9 +225,9 @@ def find_by_mail(email, master_password):
 
         try:
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
-            print(f"Email: {email}, Service: {service}, Password: {decrypted_password}, Note: {note}")
+            print(f"Email: '{email}', Service: '{service}', Password: '{decrypted_password}', Note: {note}")
         except Exception as e:
-            print(f"Error in decrtpting for service {service} and email {email}.")
+            print(f"Error in decrtpting for service '{service}' and email '{email}'.")
             continue    
 
 
@@ -255,9 +264,20 @@ if __name__ == "__main__":
                 master_password_confermation = getpass.getpass(prompt="Re-enter the MASTER PASSWORD for confirmation: ")
 
 
-            service_name = input("Enter the service name: ").lower()
-            email = input("Enter the email for the account: ")
-            password = input(f"Enter the password fot the account {email}: ").strip()
+            service_name = input("Enter the service name: ").lower().strip()
+            while not service_name:
+                print("Service name cannot be empty.")
+                service_name = input("Enter the service name: ").lower().strip()
+
+            email = input("Enter the email for the account: ").strip()
+            while not email:
+                print("Email cannot be empty.")
+                email = input("Enter the email for the account: ").strip()
+
+            password = input(f"Enter the password for the account '{email}': ").strip()
+            while not password:
+                print("Password cannot be empty.")
+                password = input(f"Enter the password for the account '{email}': ").strip()
             note = input("Enter a NOTE (optional): ")
             print()
             add_password(service_name, email, password, note, master_password)
@@ -266,7 +286,10 @@ if __name__ == "__main__":
         elif resp == '2':
             print("Searching for an existing password")
             master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
-            service_name = input("Enter the service name: ").lower()
+            service_name = input("Enter the service name: ").lower().strip()
+            while not service_name:
+                print("Service name cannot be empty.")
+                service_name = input("Enter the service name: ").lower().strip()
             mails = get_mails(service_name)
 
             if not mails:
@@ -278,16 +301,16 @@ if __name__ == "__main__":
                 retrieved_note = get_note(service_name, retrieved_mail)[0]
 
                 if retrieved_password:
-                    print(f"Password for account {retrieved_mail} of {service_name} is: {retrieved_password}")
+                    print(f"Password for account '{retrieved_mail}' of '{service_name}' is: {retrieved_password}")
                     if retrieved_note == "":
                         print("There are no notes")
                     else:
-                        print(f"Notes for {service_name} are: {retrieved_note}")
+                        print(f"Notes for '{service_name}' are: {retrieved_note}")
                     print("---------------------------------------------------------")
                 else:
                     print("Incorrect MASTER PASSWORD or the entry does not exist.")
             else:
-                print(f"There are more account for the service {service_name}.")
+                print(f"There are more account for the service '{service_name}'.")
                 print("Choose the one you want:")
                 for index, mail in enumerate(mails, start=1):
                     print(f"{index}. {mail}")
@@ -300,11 +323,11 @@ if __name__ == "__main__":
                         retrieved_note = get_note(service_name, retrieved_mail)[0]
 
                         if retrieved_password:
-                            print(f"Password for account {retrieved_mail} of {service_name} is: {retrieved_password}")
+                            print(f"Password for account '{retrieved_mail}' of '{service_name}' is: {retrieved_password}")
                             if retrieved_note == "":
                                 print("There are no notes")
                             else:
-                                print(f"Notes for {service_name} are: {retrieved_note}")
+                                print(f"Notes for '{service_name}' are: {retrieved_note}")
                             print("---------------------------------------------------------")
                         else:
                             print("Incorrect MASTER PASSWORD or the entry does not exist.")
@@ -317,15 +340,38 @@ if __name__ == "__main__":
             print("Modifying password")
             master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
 
-            old_service = input("Insert the service to modify: ").lower()
-            old_email = input("Insert the old account to modify: ")
+            old_service = input("Insert the service to modify: ").lower().strip()
+            while not old_service:
+                print("Service name cannot be empty.")
+                old_service = input("Insert the service to modify: ").lower().strip()
+
+            old_email = input("Insert the old account to modify: ").strip()
+            while not old_email:
+                print("Email cannot be empty.")
+                old_email = input("Insert the old account to modify: ").strip()
+
             old_password = input("Insert the old password to modify: ").strip()
-            old_note = get_note(old_service, old_email)[0]
+            while not old_password:
+                print("Password cannot be empty.")
+                old_password = input("Insert the old password to modify: ").strip()
+                old_note = get_note(old_service, old_email)[0]
 
             print()
-            new_service = input("Insert the new service: ").lower()
-            new_email = input("Insert the new account: ")
-            new_password = input(f"Insert the new password for the account {new_email}: ").strip()
+            new_service = input("Insert the new service: ").lower().strip()
+            while not new_service:
+                print("Service name cannot be empty.")
+                new_service = input("Insert the new service: ").lower().strip()
+
+            new_email = input("Insert the new account: ").strip()
+            while not new_email:
+                print("Email cannot be empty.")
+                new_email = input("Insert the new account: ").strip()
+
+            new_password = input(f"Insert the new password for the account '{new_email}': ").strip()
+            while not new_password:
+                print("Password cannot be empty.")
+                new_password = input(f"Insert the new password for the account '{new_email}': ").strip()
+
             new_note = input("Insert new notes (optional): ") or old_note
 
             modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)
@@ -335,10 +381,23 @@ if __name__ == "__main__":
             print("Deleting  a password")
             master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
 
-            service_name = input("Insert the service: ").lower()
-            email = input("Insert the account to delete: ")
-            password = input(f"Insert the password of account {email} for confirmation: ").strip()
-            safety = input(f"Are you sure you want to delete the password for the account {email}? This action cannot be undone. Digit Y to continue, any other key to cancel: ")
+            service_name = input("Insert the service: ").lower().strip()
+            while not service_name:
+                print("Service name cannot be empty.")
+                service_name = input("Insert the service: ").lower().strip()
+
+            email = input("Insert the account to delete: ").strip()
+            while not email:
+                print("Email cannot be empty.")
+                email = input("Insert the account to delete: ").strip()
+
+            password = input(f"Insert the password of account '{email}' for confirmation: ").strip()
+            while not password:
+                print("Password cannot be empty.")
+                password = input(f"Insert the password of account '{email}' for confirmation: ").strip()
+
+
+            safety = input(f"Are you sure you want to delete the password for the account '{email}'? This action cannot be undone. Digit Y to continue, any other key to cancel: ")
             if safety.lower() == 'y':
                 if get_password(service_name, email, master_password) == password:
                     remove_entry(service_name, email, master_password)
@@ -355,8 +414,11 @@ if __name__ == "__main__":
 
         elif resp == '6':
             print("Finding all services linked to an account (email or username)")
-            master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
-            mail = input("Enter the email for the account: ")
+            mail = input("Enter the email for the account: ").strip()
+            while not mail:
+                print("Email cannot be empty.")
+                mail = input("Enter the email for the account: ").strip()
+
             find_by_mail(mail, master_password)
             
 
@@ -373,7 +435,7 @@ if __name__ == "__main__":
                 delete_all(master_password)
 
         elif resp.lower() == 'i':
-            print("\Info")
+            print("\nINFO")
             print("Choose the desired service by entering the corresponding number.")
             print("WARNING: You must use the same MASTER PASSWORD for both adding and retrieving a password, otherwise the service cannot be provided!")
             print("You will need to remember the MASTER PASSWORD, as it cannot be stored in the database.")
@@ -388,3 +450,4 @@ if __name__ == "__main__":
         else:
             print("Insert a valid input: 1, 2, 3, 4, 5, 6, 7, i or Q.")
 
+        # print("#########################################################\n")

@@ -240,7 +240,9 @@ def signal_handler(sig, frame):
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     create_db()
-    print("---------------------------------------------------------")
+    print(" ╔═══════════════════════════════════╗ ")
+    print(" ║    Password Manager by Stevees    ║ ")
+    print(" ╚═══════════════════════════════════╝ ")
     try:
         while True:
             print()

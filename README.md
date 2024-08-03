@@ -1,5 +1,8 @@
 # Password Manager
 
+![image](https://github.com/user-attachments/assets/264dc172-457e-4b25-bc2c-508a7bf1b507)
+
+
 This project is a password manager application written in Python. It allows users to securely store, retrieve, modify, and delete passwords associated with various services and accounts. The passwords are encrypted using the `cryptography.fernet` module, which utilizes AES encryption. The master password is used to generate encryption keys and is never stored in the database.
 
 ## Features

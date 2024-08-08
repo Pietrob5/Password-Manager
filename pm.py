@@ -256,14 +256,30 @@ if __name__ == "__main__":
             elif resp == '1':
                 print("Adding a new password")
 
-                master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
-                master_password_confermation = getpass.getpass(prompt="Re-enter the MASTER PASSWORD for confirmation: ")
-
-
-                while master_password_confermation != master_password:
-                    print("\nThe MASTER PASSWORDs do not match.")
+                while True:
                     master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
-                    master_password_confermation = getpass.getpass(prompt="Re-enter the MASTER PASSWORD for confirmation: ")
+                    if not master_password:
+                        print("The MASTER PASSWORD cannot be empty. Please try again.")
+                        continue
+                    
+                    master_password_confirmation = getpass.getpass(prompt="Re-enter the MASTER PASSWORD for confirmation: ")
+                    if not master_password_confirmation:
+                        print("The confirmation password cannot be empty. Please try again.")
+                        continue
+                    
+                    if master_password != master_password_confirmation:
+                        print("\nThe MASTER PASSWORDs do not match. Please try again.")
+                    else:
+                        break
+
+                # master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                # master_password_confermation = getpass.getpass(prompt="Re-enter the MASTER PASSWORD for confirmation: ")
+
+
+                # while master_password_confermation != master_password:
+                #     print("\nThe MASTER PASSWORDs do not match.")
+                #     master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                #     master_password_confermation = getpass.getpass(prompt="Re-enter the MASTER PASSWORD for confirmation: ")
 
 
                 service_name = input("Enter the service name: ").lower().strip()
@@ -287,7 +303,13 @@ if __name__ == "__main__":
 
             elif resp == '2':
                 print("Searching for an existing password")
-                master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                while True:
+                    master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                    if not master_password:
+                        print("The MASTER PASSWORD cannot be empty. Please try again.")
+                        continue
+                    else:
+                        break
                 service_name = input("Enter the service name: ").lower().strip()
                 while not service_name:
                     print("Service name cannot be empty.")
@@ -340,7 +362,13 @@ if __name__ == "__main__":
 
             elif resp == '3':
                 print("Modifying password")
-                master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                while True:
+                    master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                    if not master_password:
+                        print("The MASTER PASSWORD cannot be empty. Please try again.")
+                        continue
+                    else:
+                        break
 
                 old_service = input("Insert the service to modify: ").lower().strip()
                 while not old_service:
@@ -381,7 +409,13 @@ if __name__ == "__main__":
 
             elif resp == '4':
                 print("Deleting  a password")
-                master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                while True:
+                    master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                    if not master_password:
+                        print("The MASTER PASSWORD cannot be empty. Please try again.")
+                        continue
+                    else:
+                        break
 
                 service_name = input("Insert the service: ").lower().strip()
                 while not service_name:
@@ -410,12 +444,25 @@ if __name__ == "__main__":
 
             elif resp == '5':
                 print("Viewing the entire database")
-                master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                while True:
+                    master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                    if not master_password:
+                        print("The MASTER PASSWORD cannot be empty. Please try again.")
+                        continue
+                    else:
+                        break
                 print_all(master_password)
                 print("---------------------------------------------------------")  
 
             elif resp == '6':
                 print("Finding all services linked to an account (email or username)")
+                while True:
+                    master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                    if not master_password:
+                        print("The MASTER PASSWORD cannot be empty. Please try again.")
+                        continue
+                    else:
+                        break
                 mail = input("Enter the email for the account: ").strip()
                 while not mail:
                     print("Email cannot be empty.")
@@ -429,7 +476,13 @@ if __name__ == "__main__":
             elif resp == '7':
                 print("Deleting the entire database")
 
-                master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                while True:
+                    master_password = getpass.getpass(prompt="Enter the MASTER PASSWORD: ")
+                    if not master_password:
+                        print("The MASTER PASSWORD cannot be empty. Please try again.")
+                        continue
+                    else:
+                        break
 
                 print("ATTENTION! This operation can't be undone. All datas will be lost.")
                 safety = input("Are you sure you want to delete the entire database? Digit Y to continue, any other key to cancel: ")

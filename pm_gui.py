@@ -125,18 +125,45 @@ def credsSubmit_func():
     master_password = masterPass_Input_Var.get()
     master_password_confirmation = masterPass_ReEnter_Input_Var.get()
 
-    if master_password != master_password_confirmation:
-        messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
-        print("Not Equal Password")
-        return
+    emptyInpCheck = [masterPass_Input_Var.get(), masterPass_ReEnter_Input_Var.get(), service_Input_Var.get(), password_Input_Var.get(), email_Input_Var.get()]    
+    
+    #Loop to check empty or same masterpass value.
+    for v in emptyInpCheck:        
+        
+        empyt_val = ""        
+
+        if empyt_val in emptyInpCheck:
+            messagebox.showwarning("Missing Field", "Missing one OR some fields\nPlease Re-Verify")
+            print(f"missing values ---- {v}")            
+            break
+
+        elif masterPass_Input_Var.get() != masterPass_ReEnter_Input_Var.get():
+            messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
+            print("Not Equal Password")
+            break
+
+        elif 1 == pm.add_password(service, email, password, note, master_password):
+            messagebox.showinfo("Success", "Password succesfully stored.")
+            addCreds() # <- is always better idea than default as it helps user in adding multiple entries one after other
+            # showDefaultDisplay()         
+            break
+
+        else:
+            messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")            
+            break             
+
+    # if master_password != master_password_confirmation:
+    #     messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
+    #     print("Not Equal Password")
+    #     return
     
     # Calling the add_password function with the extracted values
-    if 1 == pm.add_password(service, email, password, note, master_password):
-        messagebox.showinfo("Success", "Password succesfully stored.")
-        showDefaultDisplay()         
-    else:
-        messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
-        return
+    # if 1 == pm.add_password(service, email, password, note, master_password):
+    #     messagebox.showinfo("Success", "Password succesfully stored.")
+    #     showDefaultDisplay()         
+    # else:
+    #     messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
+    #     return
     
 
 
@@ -208,8 +235,7 @@ def printAll(**kwargs): #5
 
     # Ottenere la master password e chiamare la funzione print_all
     popResult = masterPass_Input_Var.get()
-    result = pm.print_all(popResult)
-    
+    result = pm.print_all(popResult)    
 
     
     # Mostrare i risultati nella finestra, centrati orizzontalmente

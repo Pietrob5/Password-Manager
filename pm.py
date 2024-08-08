@@ -203,14 +203,13 @@ def delete_all(master_password):
         try:
             cipher_suite.decrypt(encrypted_password).decode()
         except Exception as e:
-            print("MASTER PASSWORD wrong.")
             conn.close()
-            return
+            return 0
     
     c.execute("DELETE FROM passwords")
     conn.commit()
     conn.close()
-    print("All entry have been deleted.")
+    return 1
 
 
 def find_by_mail(email, master_password):
@@ -233,8 +232,9 @@ def find_by_mail(email, master_password):
         try:
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
             list.append((service, email, decrypted_password, note))
-            print(f"Email: '{email}', Service: '{service}', Password: '{decrypted_password}', Note: {note}")
+            # print(f"Email: '{email}', Service: '{service}', Password: '{decrypted_password}', Note: {note}")
         except Exception as e:
+            list.append((service, email, "---", "---"))
             print(f"Error in decrtpting for service '{service}' and email '{email}'.")
             continue    
     return list
@@ -479,7 +479,11 @@ if __name__ == "__main__":
                     print("Email cannot be empty.")
                     mail = input("Enter the email for the account: ").strip()
 
-                find_by_mail(mail, master_password)
+                result = find_by_mail(mail, master_password)
+                for el in result:
+                    print(f"Email: '{el[0]}', Service: '{el[1]}', Password: '{el[2]}', Note: {el[3]}")
+
+                    
                 
 
 
@@ -498,7 +502,13 @@ if __name__ == "__main__":
                 print("ATTENTION! This operation can't be undone. All datas will be lost.")
                 safety = input("Are you sure you want to delete the entire database? Digit Y to continue, any other key to cancel: ")
                 if safety.lower() == 'y':
-                    delete_all(master_password)
+                    if delete_all(master_password) == 1:
+                        print("All entry have been deleted.")
+                    else:
+                        print("MASTER PASSWORD wrong.")
+
+
+                    
 
             elif resp.lower() == 'i':
                 print("\nINFO")

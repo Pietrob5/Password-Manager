@@ -58,11 +58,12 @@ def add_password(service, email, password, note, master_password):
 
     except sqlite3.IntegrityError as e:
         print(f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
-        # print(f"Details: {e}")
-
-    finally:
         conn.close()
-        return 1
+        return 0
+
+    
+    conn.close()
+    return 1
 
 
 
@@ -170,6 +171,8 @@ def print_all(master_password):
     conn.close()
     if len(rows) == 0:
         print("Database is empty.\n")
+        return []
+    list = []
     for row in rows:
         service, email, encrypted_password, note, salt = row
 
@@ -178,10 +181,12 @@ def print_all(master_password):
 
         try:
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
-            print(f"Service: '{service}', Email: '{email}', Password: '{decrypted_password}', Note: {note}")
+            # print(f"Service: '{service}', Email: '{email}', Password: '{decrypted_password}', Note: {note}")
+            list.append((service, email, decrypted_password, note))
         except Exception as e:
             print(f"Error in decrtpting for service '{service}' and email '{email}'.")
             continue    
+    return list
 
 
 def delete_all(master_password):
@@ -217,6 +222,8 @@ def find_by_mail(email, master_password):
     conn.close()
     if len(rows) == 0:
         print(f"Account '{email}' is not linked to any service.\n")
+        return []
+    list = []
     for row in rows:
         service, email, encrypted_password, note, salt = row
 
@@ -225,10 +232,12 @@ def find_by_mail(email, master_password):
 
         try:
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
+            list.append((service, email, decrypted_password, note))
             print(f"Email: '{email}', Service: '{service}', Password: '{decrypted_password}', Note: {note}")
         except Exception as e:
             print(f"Error in decrtpting for service '{service}' and email '{email}'.")
             continue    
+    return list
 
 
 
@@ -451,7 +460,9 @@ if __name__ == "__main__":
                         continue
                     else:
                         break
-                print_all(master_password)
+                result = print_all(master_password)
+                for el in result:
+                    print(f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}")
                 print("---------------------------------------------------------")  
 
             elif resp == '6':

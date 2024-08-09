@@ -1,4 +1,3 @@
-
 import sqlite3 
 import bcrypt # type: ignore
 from cryptography.fernet import Fernet # type: ignore
@@ -26,7 +25,7 @@ def generate_key(password, salt):
 def create_db():
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT, email TEXT, encrypted_password BLOB, note TEXT, salt BLOB, CONSTRAINT un1 UNIQUE (service, email))''')
+    c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT not null, email TEXT not null, encrypted_password BLOB not null, note TEXT, salt BLOB not null, CONSTRAINT un1 UNIQUE (service, email))''')
     conn.commit()
     conn.close()
 
@@ -184,6 +183,7 @@ def print_all(master_password):
             # print(f"Service: '{service}', Email: '{email}', Password: '{decrypted_password}', Note: {note}")
             list.append((service, email, decrypted_password, note))
         except Exception as e:
+            list.append((service, email, "---", "---"))
             print(f"Error in decrtpting for service '{service}' and email '{email}'.")
             continue    
     return list

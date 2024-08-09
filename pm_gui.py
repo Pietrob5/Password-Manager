@@ -187,9 +187,106 @@ def credsSubmit_func():
     #     return
     
 
+# Search Password # Button 2
+def searchPassword():
+
+    defaultDisplay_Hide()        
+
+    global masterPass_Input_Var, service_Input_Var, searchPassword_Submit
+
+    masterPass_Input_Var = StringVar()
+    service_Input_Var = StringVar()        
+
+    masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
+    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
+    masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
+    masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+
+    service_Label = Label(displayFrame, text="Enter Service Name :")
+    service_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=55)
+    service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
+    service_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+
+    searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)
+    searchPassword_Submit.place(relx=0.5, rely=0.4, anchor=CENTER)    
+
+    def validate_searhPassword(*args):        
+        if masterPass_Input_Var.get() and service_Input_Var.get():
+            searchPassword_Submit.config(state="normal")                    
+        else:
+            searchPassword_Submit.config(state="disabled")
+    
+    masterPass_Input_Var.trace_add("write", validate_searhPassword)
+    service_Input_Var.trace_add("write", validate_searhPassword)
+    validate_searhPassword()        
+
+    pass
 
 
+def searchPassword_func(): #2 Result Display (Search Password)
 
+    resultWindow = Toplevel(root)
+    resultWindow.geometry("750x300")
+    resultWindow.title("Search Passwords")
+
+    window_width = 750
+    window_height = 300
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x_cordinate = int((screen_width/2) - (window_width/2))
+    y_cordinate = int((screen_height/2) - (window_height/2))
+    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+    frame = Frame(resultWindow)
+    frame.pack(fill=BOTH, expand=True)
+    
+    canvas = Canvas(frame)
+    canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+    scrollbar.pack(side=RIGHT, fill=Y)
+
+    scrollable_frame = Frame(canvas)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    # pm.get_password(service, email, master_password):
+
+    email = pm.get_mails(service_Input_Var.get()) #returns [] list    
+    # print(f"Email = {email}")        
+    service = service_Input_Var.get()
+    # print(f"Service = {service}")
+    master_password = masterPass_Input_Var.get()
+    # print(f"Master Pass = {master_password}")    
+
+    retrieved_password = pm.get_password(service, email[0], master_password)        
+    result_Display_Fstring = f"Password for account '{email[0]}' of '{service}' is: {retrieved_password}"
+
+    try:             
+
+        if retrieved_password:                       
+            result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
+            result_Display = Label(canvas, text=result_Display_Fstring, font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)            
+            searchPassword()
+
+        else:
+            result_Label = Label(canvas, text="Error in Decrypting !", font=('Helvetica 14 bold')).place(relx=0.5, rely=0.3, anchor=CENTER)
+            result_Display = Label(canvas, text="Please Re-Verify Master Pass & Service", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
+    
+    except Exception:
+        result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
+        result_Display = Label(canvas, text="Error in Decrypting : Please Retry !", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
+        pass
+
+    pass
 
 def viewAll():  # 5 View All Database
 
@@ -220,7 +317,7 @@ def viewAll():  # 5 View All Database
     masterPass_Input_Var.trace_add("write", validate_viewAll)
     validate_viewAll()
 
-def printAll(**kwargs): #5
+def printAll(**kwargs): #5 Result Display (View All)
 
     resultWindow = Toplevel(root)
     resultWindow.geometry("750x300")
@@ -433,7 +530,7 @@ pm.create_db()
 menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
 
 menuButton1 = Button(menuButtons, text='Add New Credentials', height=2, width=15, command=addCreds).place(relx=0.1, rely=0.5, anchor=CENTER)
-menuButton2 = Button(menuButtons, text='Search a Password', height=2, width=15).place(relx=0.2, rely=0.5, anchor=CENTER)
+menuButton2 = Button(menuButtons, text='Search a Password', height=2, width=15, command=searchPassword).place(relx=0.2, rely=0.5, anchor=CENTER)
 menuButton3 = Button(menuButtons, text='Modify a Password', height=2, width=15).place(relx=0.3, rely=0.5, anchor=CENTER)
 menuButton4 = Button(menuButtons, text='Delete a Password', height=2, width=15).place(relx=0.4, rely=0.5, anchor=CENTER)
 menuButton5 = Button(menuButtons, text='View All Database', height=2, width=15, command=viewAll).place(relx=0.5, rely=0.5, anchor=CENTER)

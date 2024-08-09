@@ -43,7 +43,7 @@ def defaultDisplay_Hide():
     global displayFrame
     displayFrame.pack_forget()
     # displayFrame.destroy()
-    displayFrame = LabelFrame(frame1, text='DisplayFrame', relief=FLAT, bd=3)
+    displayFrame = LabelFrame(frame1, text='', relief=FLAT, bd=3)
     displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
     pass
@@ -63,7 +63,7 @@ def helpDisplay():  # Button 8
 def showDefaultDisplay():
     defaultDisplay_Hide()  # Nascondi il frame attuale
     defaultDisplay = Label(displayFrame, bg='silver', text=
-    "Password Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for both adding and retrieving a password, otherwise the service cannot be provided!'",
+    "Password Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
     bd=4, font="helvetica", wraplength=900, padx=10, pady=10)
     defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
 
@@ -115,7 +115,28 @@ def addCreds(): # Button 1
     credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func) # -> credsSubmit_func()
     credsSubmit.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-    pass
+#To add real-time validation of submit button in Add New Credentiala
+#     masterPass_Input_Var.trace_add("write", validate_fields)
+#     masterPass_ReEnter_Input_Var.trace_add("write", validate_fields)
+#     service_Input_Var.trace_add("write", validate_fields)
+#     email_Input_Var.trace_add("write", validate_fields)
+#     password_Input_Var.trace_add("write", validate_fields)
+#     note_Input_Var.trace_add("write", validate_fields)
+
+#     validate_fields()  
+
+# def validate_fields(*args):
+#     master_password = masterPass_Input_Var.get().strip()
+#     master_password_confirmation = masterPass_ReEnter_Input_Var.get().strip()
+#     service = service_Input_Var.get().strip()
+#     email = email_Input_Var.get().strip()
+#     password = password_Input_Var.get().strip()
+
+#     if (master_password and master_password_confirmation and service and email and password and master_password == master_password_confirmation):
+#         credsSubmit.config(state="normal")
+#     else:
+#         credsSubmit.config(state="disabled")
+
 
 def credsSubmit_func(): 
     service = service_Input_Var.get()
@@ -134,12 +155,12 @@ def credsSubmit_func():
 
         if empyt_val in emptyInpCheck:
             messagebox.showwarning("Missing Field", "Missing one OR some fields\nPlease Re-Verify")
-            print(f"missing values ---- {v}")            
+            # print(f"missing values ---- {v}")            
             break
 
         elif masterPass_Input_Var.get() != masterPass_ReEnter_Input_Var.get():
             messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
-            print("Not Equal Password")
+            # print("Not Equal Password")
             break
 
         elif 1 == pm.add_password(service, email, password, note, master_password):
@@ -168,31 +189,36 @@ def credsSubmit_func():
 
 
 
-def viewAll():  #5 View All Database
+
+
+def viewAll():  # 5 View All Database
 
     defaultDisplay_Hide()        
 
-    global masterPass_Input_Var, popResult, credsSubmit
+    global masterPass_Input_Var, credsSubmit
     masterPass_Input_Var = StringVar()
-    # popResult = masterPass_Input_Var.get()
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
     masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
 
-    # credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=printAll, state=DISABLED)
-    credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=printAll)
-    credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)        
-    pass
+    def validate_viewAll(*args):
+        master_password = masterPass_Input_Var.get().strip()
+        if master_password:
+            credsSubmit.config(state="normal")
+        else:
+            credsSubmit.config(state="disabled")
 
-#Function Disable Sbbmit Button if Entered value == ""
-# def enableCreds():
-#     if masterPass_Input_Var.get() == "":
-#         credsSubmit.config(state=DISABLED)    
-#     else:
-#         credsSubmit.config(state=NORMAL)            
+    def credsSubmit_func():
+        # Function body remains the same
+        printAll()
 
+    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func)
+    credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
+
+    masterPass_Input_Var.trace_add("write", validate_viewAll)
+    validate_viewAll()
 
 def printAll(**kwargs): #5
 
@@ -208,7 +234,6 @@ def printAll(**kwargs): #5
     y_cordinate = int((screen_height/2) - (window_height/2))
     resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
 
-    # Creare un Frame con una Scrollbar
     frame = Frame(resultWindow)
     frame.pack(fill=BOTH, expand=True)
 
@@ -230,22 +255,44 @@ def printAll(**kwargs): #5
     canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
 
-    # Titolo della finestra
+    # Funzione per gestire lo scorrimento con la rotella del mouse
+    def on_mouse_wheel(event):
+        canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+    # Associa la rotella del mouse alla canvas
+    canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows
+    canvas.bind_all("<Button-4>", on_mouse_wheel)    # Linux
+    canvas.bind_all("<Button-5>", on_mouse_wheel)    # Linux
+
     Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
 
     # Ottenere la master password e chiamare la funzione print_all
     popResult = masterPass_Input_Var.get()
-    result = pm.print_all(popResult)    
+    result = pm.print_all(popResult)
+    
 
     
     # Mostrare i risultati nella finestra, centrati orizzontalmente
     if len(result) != 0:
         for el in result:
-            Label(scrollable_frame, text=f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}").pack(pady=5, fill=X, expand=True)
+            if el[2] == "---":
+                Label(scrollable_frame, text=f"Error in decrtpting for service '{el[0]}' and email '{el[1]}'.", anchor="center").pack(pady=5, fill=X)
+            else:
+                Label(scrollable_frame, text=f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}").pack(pady=5, fill=X, expand=True)
     else:
-        Label(scrollable_frame, text="No results found.").pack(pady=10, fill=X, expand=True)
+        Label(scrollable_frame, text="No results found or incorrect master password.").pack(pady=10, fill=X, expand=True)
+    
 
-    pass
+    if result:
+            for el in result:
+                if el[2] == "---":
+                    Label(scrollable_frame, text=f"Error in decrtpting for service '{el[0]}' and email '{el[1]}'.", anchor="center").pack(pady=5, fill=X)
+                else:
+                    Label(scrollable_frame, text=f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}", anchor="center").pack(pady=5, fill=X)
+    else:
+        Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+    showDefaultDisplay()   
+
 
 
 
@@ -270,6 +317,14 @@ def searchByEmail(): #6
 
     email_Input = Entry(displayFrame, width=30, textvariable=email_Input_Var)
     email_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+
+    def validate_searchByEmail(*args):
+        master_password = masterPass_Input_Var.get().strip()
+        email = email_Input_Var.get().strip()
+        if master_password and email:
+            credsSubmit.config(state="normal")
+        else:
+            credsSubmit.config(state="disabled")
 
     def credsSubmit_func():
         email = email_Input_Var.get()
@@ -299,6 +354,7 @@ def searchByEmail(): #6
         scrollbar.pack(side=RIGHT, fill=Y)
 
         scrollable_frame = Frame(canvas)
+
         scrollable_frame.bind(
             "<Configure>",
             lambda e: canvas.configure(
@@ -309,7 +365,14 @@ def searchByEmail(): #6
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        Label(scrollable_frame, text="Search Results", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X)
+        # Funzione per gestire lo scorrimento con la rotella del mouse
+        def on_mouse_wheel(event):
+            canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+        # Associa la rotella del mouse alla canvas
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows
+        canvas.bind_all("<Button-4>", on_mouse_wheel)    # Linux
+        canvas.bind_all("<Button-5>", on_mouse_wheel)    # Linux
 
         if result:
             for el in result:
@@ -321,9 +384,12 @@ def searchByEmail(): #6
             Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
         showDefaultDisplay()   
 
-    # Bottone di submit che chiama credsSubmit_func
     credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
+    masterPass_Input_Var.trace_add("write", validate_searchByEmail)
+    email_Input_Var.trace_add("write", validate_searchByEmail)
+
+    validate_searchByEmail()
 
 
 def delDatabase():
@@ -331,12 +397,18 @@ def delDatabase():
 
     global masterPass_Input_Var, popResult, credsSubmit
     masterPass_Input_Var = StringVar()
-    # popResult = masterPass_Input_Var.get()
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
     masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+
+    def validate_delDatabase(*args):
+        master_password = masterPass_Input_Var.get().strip()
+        if master_password:
+            credsSubmit.config(state="normal")
+        else:
+            credsSubmit.config(state="disabled")
 
     def delAll():
         confirm = messagebox.askyesno("Confirm Delete", "ATTENTION! This operation can't be undone. All datas will be lost. Are you sure you want to delete the entire database?")
@@ -348,7 +420,8 @@ def delDatabase():
             showDefaultDisplay()
     credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delAll)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)        
-    pass
+    masterPass_Input_Var.trace_add("write", validate_delDatabase)
+    validate_delDatabase()
 
 def quit():
     sys.exit(0)
@@ -380,10 +453,10 @@ displayFrame = LabelFrame(frame1, text='', relief=FLAT, bd=3)
 displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
 
-helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for both adding and retrieving a password, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."
+helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."
 
 defaultDisplay = Label(displayFrame, bg='silver', text=
-"Password Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for both adding and retrieving a password, otherwise the service cannot be provided!'",
+"Password Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
 bd=4,font="helvatica", wraplength=900, padx=10, pady=10)
 defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
 

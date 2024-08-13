@@ -1,3 +1,4 @@
+
 import sqlite3 
 import bcrypt # type: ignore
 from cryptography.fernet import Fernet # type: ignore
@@ -83,7 +84,7 @@ def get_password(service, email, master_password):
             decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
             return decrypted_password
         except Exception as e:
-            print(f"Error in decrtpting: {e}")
+            # print(f"Error in decrtpting: {e}")
             return None
     else:
         return None
@@ -130,11 +131,14 @@ def remove_entry(service, email, master_password):
             c.execute("DELETE FROM passwords WHERE service = ? AND email = ?", (service, email))
             conn.commit()
             conn.close()
-            print(f"Entry for service '{service}' and email '{email}' removed.")
+            return 1 #entry correctly removed
+            # print(f"Entry for service '{service}' and email '{email}' removed.")
         except Exception as e:
-            print(f"Error in decrtpting: {e}")
+            return 0 #error in decripting 
+            # print(f"Error in decrtpting: {e}")
     else:
-        print("No enrty to remove found.")
+        return 2 #entry not found
+        # print("No enrty to remove found.")
 
 def modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password):
     conn = sqlite3.connect('passwords.db')
@@ -445,7 +449,14 @@ if __name__ == "__main__":
                 safety = input(f"Are you sure you want to delete the password for the account '{email}'? This action cannot be undone. Digit Y to continue, any other key to cancel: ")
                 if safety.lower() == 'y':
                     if get_password(service_name, email, master_password) == password:
-                        remove_entry(service_name, email, master_password)
+                        ret = remove_entry(service_name, email, master_password)
+                        if ret == 1:
+                            print(f"Entry for service '{service_name}' and email '{email}' removed.")
+                        elif ret == 2:
+                            print("No enrty to remove found.")
+                        elif ret == 0:
+                            print(f"Error in decrtpting.")
+
                     else:
                         print("Wrong password. Cant't delete the entry.")
                 print("---------------------------------------------------------")

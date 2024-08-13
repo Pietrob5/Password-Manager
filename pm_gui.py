@@ -281,18 +281,21 @@ def searchPassword_func(): #2 Result Display (Search Password)
     master_password = masterPass_Input_Var.get()
     # print(f"Master Pass = {master_password}")    
 
-    for el in email:
-        psw = pm.get_password(service, el, masterPass_Input_Var.get())
-        note = pm.get_note(service, el)[0]
-        if psw:
-            Label(scrollable_frame, text=f"Password for account '{el}' of '{service}' is: '{psw}', Note: {note}", anchor="center").pack(pady=5, fill=X)
-            # if note == "":
-            #     Label(scrollable_frame, text=f"There are no notes", anchor="center").pack(pady=5, fill=X)
-            # else:
-            #     Label(scrollable_frame, text=f"Notes for '{service}' are: {note}", anchor="center").pack(pady=5, fill=X)
-            # Label(scrollable_frame, text="\n", anchor="center").pack(pady=5, fill=X)
-        else:
-            print("Incorrect MASTER PASSWORD or the entry does not exist.")
+    if email:
+        for el in email:
+            psw = pm.get_password(service, el, masterPass_Input_Var.get())
+            note = pm.get_note(service, el)[0]
+            if psw:
+                Label(scrollable_frame, text=f"Password for account '{el}' of '{service}' is: '{psw}', Note: {note}", anchor="center").pack(pady=5, fill=X)
+                # if note == "":
+                #     Label(scrollable_frame, text=f"There are no notes", anchor="center").pack(pady=5, fill=X)
+                # else:
+                #     Label(scrollable_frame, text=f"Notes for '{service}' are: {note}", anchor="center").pack(pady=5, fill=X)
+                # Label(scrollable_frame, text="\n", anchor="center").pack(pady=5, fill=X)
+            else:
+                Label(scrollable_frame, text=f"Error in Decrypting for account {el}! Incorrect MASTER PASSWORD.", anchor="center").pack(pady=5, fill=X)
+    else:
+        Label(scrollable_frame, text=f"Incorrect MASTER PASSWORD or the entry does not exist.", anchor="center").pack(pady=5, fill=X)
     
     # retrieved_password = pm.get_password(service, email[0], master_password)        
     # print(retrieved_password)
@@ -470,6 +473,72 @@ def modifyPassword_Submit():
     pass
 
 
+def delEntry():
+    defaultDisplay_Hide()        
+
+    header_Label = Label(displayFrame, text="Delete a Password", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
+    global masterPass_Input_Var, popResult, credsSubmit
+
+    masterPass_Input_Var = StringVar()
+    email_Input_Var = StringVar()
+    service_Input_Var = StringVar()
+    password_Input_Var = StringVar()
+
+    masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
+    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
+    masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
+    masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+
+    service_Label = Label(displayFrame, text="Service :")
+    service_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
+    service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
+    service_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+
+    email_Label = Label(displayFrame, text="Email :")
+    email_Label.place(relx=0.4, rely=0.4, anchor=CENTER, x=35)
+    email_Input = Entry(displayFrame, width=30, textvariable=email_Input_Var)
+    email_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=-35)
+
+    password_Label = Label(displayFrame, text="Password :")
+    password_Label.place(relx=0.4, rely=0.5, anchor=CENTER, x=35)
+    password_Input = Entry(displayFrame, width=30, textvariable=password_Input_Var)
+    password_Input.place(relx=0.6, rely=0.5, anchor=CENTER, x=-35)
+
+    def validate_delPsw(*args):
+        master_password = masterPass_Input_Var.get().strip()
+        if master_password and service_Input_Var.get() and email_Input_Var.get() and password_Input_Var.get():
+            credsSubmit.config(state="normal")
+        else:
+            credsSubmit.config(state="disabled")
+
+    def delPsw():
+        confirm = messagebox.askyesno("Confirm Delete", f"ATTENTION! Are you sure to delete {email_Input_Var.get()}'s {service_Input_Var.get()} password? This operation can't be undone.")
+        if confirm:
+            if pm.get_password(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get()) == password_Input_Var.get():
+                ret = pm.remove_entry(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get())
+                if ret == 1:
+                    messagebox.showinfo("Success", f"Password for service '{service_Input_Var.get()}' and email '{email_Input_Var.get()}' removed.")
+                    showDefaultDisplay()
+                # elif ret == 2:
+                #     messagebox.showinfo("Failed", "No enrty to remove found.")
+                elif ret == 0:
+                    messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD.")
+            elif pm.get_password(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get()) == None:
+                messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD or service or email.")
+            else:
+                messagebox.showinfo("Failed", "Wrong password. Cant't delete the entry.")
+
+    credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delPsw)
+    credsSubmit.place(relx=0.5, rely=0.6, anchor=CENTER)        
+    masterPass_Input_Var.trace_add("write", validate_delPsw)
+    email_Input_Var.trace_add("write", validate_delPsw)
+    service_Input_Var.trace_add("write", validate_delPsw)
+    password_Input_Var.trace_add("write", validate_delPsw)
+    validate_delPsw()
+    
+
+
 def viewAll():  # 5 View All Database
 
     defaultDisplay_Hide()        
@@ -574,6 +643,8 @@ def searchByEmail(): #6
 
     global masterPass_Input_Var, email_Input_Var
 
+    header_Label = Label(displayFrame, text="Search by Email", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
     masterPass_Input_Var = StringVar()
     email_Input_Var = StringVar()
 
@@ -666,6 +737,8 @@ def searchByEmail(): #6
 def delDatabase():
     defaultDisplay_Hide()        
 
+    header_Label = Label(displayFrame, text="Delete the entire Database", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
     global masterPass_Input_Var, popResult, credsSubmit
     masterPass_Input_Var = StringVar()
 
@@ -686,9 +759,10 @@ def delDatabase():
         if confirm:
             if pm.delete_all(masterPass_Input.get()) == 1:
                 messagebox.showinfo("Success", "Database succesfully deleted.")
+                showDefaultDisplay()
             else:
                 messagebox.showinfo("Failed", f"Error: Unable to delete database. Try again.")
-            showDefaultDisplay()
+            
     credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delAll)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)        
     masterPass_Input_Var.trace_add("write", validate_delDatabase)
@@ -706,7 +780,7 @@ menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80
 menuButton1 = Button(menuButtons, text='Add New Credentials', height=2, width=15, command=addCreds).place(relx=0.1, rely=0.5, anchor=CENTER)
 menuButton2 = Button(menuButtons, text='Search a Password', height=2, width=15, command=searchPassword).place(relx=0.2, rely=0.5, anchor=CENTER)
 menuButton3 = Button(menuButtons, text='Modify a Password', height=2, width=15, command=modifyPassword).place(relx=0.3, rely=0.5, anchor=CENTER)
-menuButton4 = Button(menuButtons, text='Delete a Password', height=2, width=15).place(relx=0.4, rely=0.5, anchor=CENTER)
+menuButton4 = Button(menuButtons, text='Delete a Password', height=2, width=15, command=delEntry).place(relx=0.4, rely=0.5, anchor=CENTER)
 menuButton5 = Button(menuButtons, text='View All Database', height=2, width=15, command=viewAll).place(relx=0.5, rely=0.5, anchor=CENTER)
 menuButton6 = Button(menuButtons, text='Search by Email', height=2, width=15, command=searchByEmail).place(relx=0.6, rely=0.5, anchor=CENTER)
 menuButton7 = Button(menuButtons, text='Delete All Database', height=2, width=15, command=delDatabase).place(relx=0.7, rely=0.5, anchor=CENTER)

@@ -261,36 +261,60 @@ def searchPassword_func(): #2 Result Display (Search Password)
 
     canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Funzione per gestire lo scorrimento con la rotella del mouse
+    def on_mouse_wheel(event):
+        canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+    # Associa la rotella del mouse alla canvas
+    canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows
+    canvas.bind_all("<Button-4>", on_mouse_wheel)    # Linux
+    canvas.bind_all("<Button-5>", on_mouse_wheel)    # Linux
     
     # pm.get_password(service, email, master_password):
 
-    email = pm.get_mails(service_Input_Var.get()) #returns [] list    
-    # print(f"Email = {email}")        
     service = service_Input_Var.get()
+
+    email = pm.get_mails(service) #returns [] list    
+    # print(f"Email = {email}")        
     # print(f"Service = {service}")
     master_password = masterPass_Input_Var.get()
     # print(f"Master Pass = {master_password}")    
 
-    retrieved_password = pm.get_password(service, email[0], master_password)        
-    result_Display_Fstring = f"Password for account '{email[0]}' of '{service}' is: {retrieved_password}"
-
-    try:             
-
-        if retrieved_password:                       
-            result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
-            result_Display = Label(canvas, text=result_Display_Fstring, font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)            
-            searchPassword()
-
+    for el in email:
+        psw = pm.get_password(service, el, masterPass_Input_Var.get())
+        note = pm.get_note(service, el)[0]
+        if psw:
+            Label(scrollable_frame, text=f"Password for account '{el}' of '{service}' is: '{psw}', Note: {note}", anchor="center").pack(pady=5, fill=X)
+            # if note == "":
+            #     Label(scrollable_frame, text=f"There are no notes", anchor="center").pack(pady=5, fill=X)
+            # else:
+            #     Label(scrollable_frame, text=f"Notes for '{service}' are: {note}", anchor="center").pack(pady=5, fill=X)
+            # Label(scrollable_frame, text="\n", anchor="center").pack(pady=5, fill=X)
         else:
-            result_Label = Label(canvas, text="Error in Decrypting !", font=('Helvetica 14 bold')).place(relx=0.5, rely=0.3, anchor=CENTER)
-            result_Display = Label(canvas, text="Please Re-Verify Master Pass & Service", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
+            print("Incorrect MASTER PASSWORD or the entry does not exist.")
     
-    except Exception:
-        result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
-        result_Display = Label(canvas, text="Error in Decrypting : Please Retry !", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
-        pass
+    # retrieved_password = pm.get_password(service, email[0], master_password)        
+    # print(retrieved_password)
+    # result_Display_Fstring = f"Password for account '{email[0]}' of '{service}' is: {retrieved_password}"
 
-    pass
+    # try:             
+
+    #     if retrieved_password:                       
+    #         result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
+    #         result_Display = Label(canvas, text=result_Display_Fstring, font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)            
+    #         searchPassword()
+
+    #     else:
+    #         result_Label = Label(canvas, text="Error in Decrypting !", font=('Helvetica 14 bold')).place(relx=0.5, rely=0.3, anchor=CENTER)
+    #         result_Display = Label(canvas, text="Please Re-Verify Master Pass & Service", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
+    
+    # except Exception:
+    #     result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
+    #     result_Display = Label(canvas, text="Error in Decrypting : Please Retry !", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
+    #     pass
+
+    # pass
 
 def modifyPassword(): # 3 Modify Password Button
 
@@ -529,15 +553,6 @@ def printAll(**kwargs): #5 Result Display (View All)
     
 
     # Mostrare i risultati nella finestra, centrati orizzontalmente
-    if len(result) != 0:
-        for el in result:
-            if el[2] == "---":
-                Label(scrollable_frame, text=f"Error in decrtpting for service '{el[0]}' and email '{el[1]}'.", anchor="center").pack(pady=5, fill=X)
-            else:
-                Label(scrollable_frame, text=f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}").pack(pady=5, fill=X, expand=True)
-    else:
-        Label(scrollable_frame, text="No results found or incorrect master password.").pack(pady=10, fill=X, expand=True)
-    
 
     if result:
             for el in result:

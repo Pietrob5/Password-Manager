@@ -72,3 +72,8 @@ This project is a password manager application written in Python. It allows user
 - **Encryption**: Utilizes the `cryptography.fernet` module with AES in CBC mode and an HMAC to ensure message integrity.
 - **Key Generation**: Uses the master password and a unique salt to generate encryption keys.
 - **Data Security**: Ensures that passwords are securely encrypted and only accessible with the correct master password.
+
+### Graphical User Interface (GUI)
+- The program now includes a GUI to enhance user experience. Users can perform all the aforementioned operations through an intuitive interface.
+- **Features**: The GUI includes buttons and fields for each operation (Add, Retrieve, Modify, Delete, etc.), providing a more accessible and user-friendly way to manage passwords.
+- **Error Handling**: The GUI displays error messages and confirmations, guiding users through successful operations and troubleshooting.

@@ -80,6 +80,8 @@ def addCreds(): # Button 1
     email_Input_Var = StringVar()
     note_Input_Var = StringVar() # optional
 
+    header_Label = Label(displayFrame, text="Add Credentials", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
     masterPass_Label.place(relx=0.3, rely=0.2, anchor=CENTER, x=-50)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show="*")
@@ -187,8 +189,261 @@ def credsSubmit_func():
     #     return
     
 
+# Search Password # Button 2
+def searchPassword():
+
+    defaultDisplay_Hide()        
+
+    global masterPass_Input_Var, service_Input_Var, searchPassword_Submit
+
+    masterPass_Input_Var = StringVar()
+    service_Input_Var = StringVar()        
+
+    header_Label = Label(displayFrame, text="Search Password", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
+    masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
+    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
+    masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
+    masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+
+    service_Label = Label(displayFrame, text="Enter Service Name :")
+    service_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=55)
+    service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
+    service_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+
+    searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)
+    searchPassword_Submit.place(relx=0.5, rely=0.4, anchor=CENTER)    
+
+    def validate_searhPassword(*args):        
+        if masterPass_Input_Var.get() and service_Input_Var.get():
+            searchPassword_Submit.config(state="normal")                    
+        else:
+            searchPassword_Submit.config(state="disabled")
+    
+    masterPass_Input_Var.trace_add("write", validate_searhPassword)
+    service_Input_Var.trace_add("write", validate_searhPassword)
+    validate_searhPassword()        
+
+    pass
 
 
+def searchPassword_func(): #2 Result Display (Search Password)
+
+    resultWindow = Toplevel(root)
+    resultWindow.geometry("750x300")
+    resultWindow.title("Search Passwords")
+
+    window_width = 750
+    window_height = 300
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x_cordinate = int((screen_width/2) - (window_width/2))
+    y_cordinate = int((screen_height/2) - (window_height/2))
+    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+    frame = Frame(resultWindow)
+    frame.pack(fill=BOTH, expand=True)
+    
+    canvas = Canvas(frame)
+    canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+    scrollbar.pack(side=RIGHT, fill=Y)
+
+    scrollable_frame = Frame(canvas)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    # pm.get_password(service, email, master_password):
+
+    email = pm.get_mails(service_Input_Var.get()) #returns [] list    
+    # print(f"Email = {email}")        
+    service = service_Input_Var.get()
+    # print(f"Service = {service}")
+    master_password = masterPass_Input_Var.get()
+    # print(f"Master Pass = {master_password}")    
+
+    retrieved_password = pm.get_password(service, email[0], master_password)        
+    result_Display_Fstring = f"Password for account '{email[0]}' of '{service}' is: {retrieved_password}"
+
+    try:             
+
+        if retrieved_password:                       
+            result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
+            result_Display = Label(canvas, text=result_Display_Fstring, font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)            
+            searchPassword()
+
+        else:
+            result_Label = Label(canvas, text="Error in Decrypting !", font=('Helvetica 14 bold')).place(relx=0.5, rely=0.3, anchor=CENTER)
+            result_Display = Label(canvas, text="Please Re-Verify Master Pass & Service", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
+    
+    except Exception:
+        result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
+        result_Display = Label(canvas, text="Error in Decrypting : Please Retry !", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
+        pass
+
+    pass
+
+def modifyPassword(): # 3 Modify Password Button
+
+
+# Modifying password
+
+# Enter the MASTER PASSWORD:
+# Insert the service to modify: ser
+# Insert the old account to modify: ema5
+# Insert the old password to modify: service_5
+
+# Insert the new service: ser5
+# Insert the new account: ema5
+# Insert the new password for the account 'ema5': pas5
+# Insert new notes (optional): note5
+
+# No enrty to modify found.
+
+    defaultDisplay_Hide()
+
+    global old_service, old_email, old_password, old_note, new_service, new_email, new_password, new_note, master_password
+    old_service, old_email, old_password, old_note, new_service, new_email, new_password, new_note, master_password = [None]*9
+
+    header_Label = Label(displayFrame, text="Modify Password", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+    
+
+    service_Input_Var = StringVar()
+    old_service = service_Input_Var.get()    
+
+    service_Label = Label(displayFrame, text="Service :")
+    service_Label.place(relx=0.3, rely=0.2, anchor=CENTER, x=2)
+    service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
+    service_Input.place(relx=0.4, rely=0.2, anchor=CENTER)
+
+    email_Input_Var = StringVar()    
+    old_email = email_Input_Var.get()
+
+    email_Label = Label(displayFrame, text="Email :")
+    email_Label.place(relx=0.3, rely=0.3, anchor=CENTER, x=7)
+    email_Input = Entry(displayFrame, width=30, textvariable=email_Input_Var)
+    email_Input.place(relx=0.4, rely=0.3, anchor=CENTER)
+
+    old_Password_Input_Var = StringVar()
+    old_password = old_Password_Input_Var.get()
+    
+    oldPassword_Label = Label(displayFrame, text="Old Password :")
+    oldPassword_Label.place(relx=0.3, rely=0.4, anchor=CENTER, x=-13)
+    oldPassword_Input = Entry(displayFrame, width=30, textvariable=old_Password_Input_Var)
+    oldPassword_Input.place(relx=0.4, rely=0.4, anchor=CENTER)
+
+    old_Note_Input_Var = StringVar()
+    old_note = old_Note_Input_Var.get()
+
+    old_Note_Label = Label(displayFrame, text="Old Note :")
+    old_Note_Label.place(relx=0.3, rely=0.5, anchor=CENTER)
+    old_Note_Input = Entry(displayFrame, width=30, textvariable=old_Note_Input_Var)
+    old_Note_Input.place(relx=0.4, rely=0.5, anchor=CENTER)
+    old_Note_Input.config(state=DISABLED) #temp disable main funciton not implemented to be removed later
+
+    new_service_Input_Var = StringVar()
+    new_service = new_service_Input_Var.get()
+    
+    new_Service_Label = Label(displayFrame, text="New Service :")
+    new_Service_Label.place(relx=0.5, rely=0.2, anchor=CENTER, x=40)
+    new_Service_Input = Entry(displayFrame, width=30, textvariable=new_service_Input_Var)
+    new_Service_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=50)    
+
+    new_email_Input_Var = StringVar()
+    new_email = new_email_Input_Var.get()
+    
+    new_email_Label = Label(displayFrame, text="New Email :")
+    new_email_Label.place(relx=0.5, rely=0.3, anchor=CENTER, x=43)
+    new_email_Input = Entry(displayFrame, width=30, textvariable=new_email_Input_Var)
+    new_email_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=50)
+
+    new_password_Input_Var = StringVar()
+    new_password = new_password_Input_Var.get()
+    
+    new_Password_Label = Label(displayFrame, text="New Password :")
+    new_Password_Label.place(relx=0.5, rely=0.4, anchor=CENTER, x=34)
+    new_Password_Input = Entry(displayFrame, width=30, textvariable=new_password_Input_Var)
+    new_Password_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
+
+    new_note_Input_Var = StringVar()
+    new_note = new_note_Input_Var.get()
+    
+    new_note_Label = Label(displayFrame, text="New Note :")
+    new_note_Label.place(relx=0.5, rely=0.5, anchor=CENTER, x=47)
+    optional_Label = Label(displayFrame, text="(Optional)")
+    optional_Label.place(relx=0.7, rely=0.5, anchor=CENTER, x=52)
+    new_note_Input = Entry(displayFrame, width=30, textvariable=new_note_Input_Var)
+    new_note_Input.place(relx=0.6, rely=0.5, anchor=CENTER, x=50)
+
+    masterPass_Input_Var = StringVar()
+    master_password = masterPass_Input_Var.get()
+
+    masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
+    masterPass_Label.place(relx=0.5, rely=0.6, anchor=CENTER, x=-90, y=8)
+    masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show="*")
+    masterPass_Input.place(relx=0.5, rely=0.6, anchor=CENTER, x=90, y=8)
+
+    Submit = Button(displayFrame, text='Submit', height=2, width=25, command=modifyPassword_Submit) # -> 
+    Submit.place(relx=0.5, rely=0.7, anchor=CENTER)    
+
+    # pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)    
+
+    pass
+
+def modifyPassword_Submit():    
+
+    resultWindow = Toplevel(root)
+    resultWindow.geometry("750x300")
+    resultWindow.title("Search Passwords")
+
+    window_width = 750
+    window_height = 300
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x_cordinate = int((screen_width/2) - (window_width/2))
+    y_cordinate = int((screen_height/2) - (window_height/2))
+    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+    frame = Frame(resultWindow)
+    frame.pack(fill=BOTH, expand=True)
+    
+    canvas = Canvas(frame)
+    canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+    scrollbar.pack(side=RIGHT, fill=Y)
+
+    scrollable_frame = Frame(canvas)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)
+    modify_result = pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)    
+    print(modify_result)
+    #None
+    
+    header_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)          
+    temp_Label = Label(canvas, text="main function need return").place(relx=0.5, rely=0.3, anchor=CENTER)
+    # def modify_entry() need return
+
+    pass
 
 
 def viewAll():  # 5 View All Database
@@ -197,6 +452,8 @@ def viewAll():  # 5 View All Database
 
     global masterPass_Input_Var, credsSubmit
     masterPass_Input_Var = StringVar()
+
+    header_Label = Label(displayFrame, text="View All Database", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
     masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
@@ -220,7 +477,7 @@ def viewAll():  # 5 View All Database
     masterPass_Input_Var.trace_add("write", validate_viewAll)
     validate_viewAll()
 
-def printAll(**kwargs): #5
+def printAll(**kwargs): #5 Result Display (View All)
 
     resultWindow = Toplevel(root)
     resultWindow.geometry("750x300")
@@ -271,7 +528,6 @@ def printAll(**kwargs): #5
     result = pm.print_all(popResult)
     
 
-    
     # Mostrare i risultati nella finestra, centrati orizzontalmente
     if len(result) != 0:
         for el in result:
@@ -433,8 +689,8 @@ pm.create_db()
 menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
 
 menuButton1 = Button(menuButtons, text='Add New Credentials', height=2, width=15, command=addCreds).place(relx=0.1, rely=0.5, anchor=CENTER)
-menuButton2 = Button(menuButtons, text='Search a Password', height=2, width=15).place(relx=0.2, rely=0.5, anchor=CENTER)
-menuButton3 = Button(menuButtons, text='Modify a Password', height=2, width=15).place(relx=0.3, rely=0.5, anchor=CENTER)
+menuButton2 = Button(menuButtons, text='Search a Password', height=2, width=15, command=searchPassword).place(relx=0.2, rely=0.5, anchor=CENTER)
+menuButton3 = Button(menuButtons, text='Modify a Password', height=2, width=15, command=modifyPassword).place(relx=0.3, rely=0.5, anchor=CENTER)
 menuButton4 = Button(menuButtons, text='Delete a Password', height=2, width=15).place(relx=0.4, rely=0.5, anchor=CENTER)
 menuButton5 = Button(menuButtons, text='View All Database', height=2, width=15, command=viewAll).place(relx=0.5, rely=0.5, anchor=CENTER)
 menuButton6 = Button(menuButtons, text='Search by Email', height=2, width=15, command=searchByEmail).place(relx=0.6, rely=0.5, anchor=CENTER)

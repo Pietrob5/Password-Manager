@@ -322,19 +322,6 @@ def searchPassword_func(): #2 Result Display (Search Password)
 def modifyPassword(): # 3 Modify Password Button
 
 
-# Modifying password
-
-# Enter the MASTER PASSWORD:
-# Insert the service to modify: ser
-# Insert the old account to modify: ema5
-# Insert the old password to modify: service_5
-
-# Insert the new service: ser5
-# Insert the new account: ema5
-# Insert the new password for the account 'ema5': pas5
-# Insert new notes (optional): note5
-
-# No enrty to modify found.
 
     defaultDisplay_Hide()
 
@@ -368,14 +355,14 @@ def modifyPassword(): # 3 Modify Password Button
     oldPassword_Input = Entry(displayFrame, width=30, textvariable=old_Password_Input_Var)
     oldPassword_Input.place(relx=0.4, rely=0.4, anchor=CENTER)
 
-    old_Note_Input_Var = StringVar()
-    old_note = old_Note_Input_Var.get()
+    # old_Note_Input_Var = StringVar()
+    # old_note = old_Note_Input_Var.get()
 
-    old_Note_Label = Label(displayFrame, text="Old Note :")
-    old_Note_Label.place(relx=0.3, rely=0.5, anchor=CENTER)
-    old_Note_Input = Entry(displayFrame, width=30, textvariable=old_Note_Input_Var)
-    old_Note_Input.place(relx=0.4, rely=0.5, anchor=CENTER)
-    old_Note_Input.config(state=DISABLED) #temp disable main funciton not implemented to be removed later
+    # old_Note_Label = Label(displayFrame, text="Old Note :")
+    # old_Note_Label.place(relx=0.3, rely=0.5, anchor=CENTER)
+    # old_Note_Input = Entry(displayFrame, width=30, textvariable=old_Note_Input_Var)
+    # old_Note_Input.place(relx=0.4, rely=0.5, anchor=CENTER)
+    # old_Note_Input.config(state=DISABLED) #temp disable main funciton not implemented to be removed later
 
     new_service_Input_Var = StringVar()
     new_service = new_service_Input_Var.get()
@@ -418,59 +405,57 @@ def modifyPassword(): # 3 Modify Password Button
     masterPass_Label.place(relx=0.5, rely=0.6, anchor=CENTER, x=-90, y=8)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show="*")
     masterPass_Input.place(relx=0.5, rely=0.6, anchor=CENTER, x=90, y=8)
-
-    Submit = Button(displayFrame, text='Submit', height=2, width=25, command=modifyPassword_Submit) # -> 
-    Submit.place(relx=0.5, rely=0.7, anchor=CENTER)    
-
-    # pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)    
-
-    pass
-
-def modifyPassword_Submit():    
-
-    resultWindow = Toplevel(root)
-    resultWindow.geometry("750x300")
-    resultWindow.title("Search Passwords")
-
-    window_width = 750
-    window_height = 300
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x_cordinate = int((screen_width/2) - (window_width/2))
-    y_cordinate = int((screen_height/2) - (window_height/2))
-    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
-
-    frame = Frame(resultWindow)
-    frame.pack(fill=BOTH, expand=True)
     
-    canvas = Canvas(frame)
-    canvas.pack(side=LEFT, fill=BOTH, expand=True)
+    def validate_ModPsw(*args):
+        old_service = service_Input_Var.get() 
+        old_password = old_Password_Input_Var.get()
+        old_email = email_Input_Var.get()
+        master_password = masterPass_Input_Var.get().strip()
+        new_password = new_password_Input_Var.get()
+        new_email = new_email_Input_Var.get()
+        new_service = new_service_Input_Var.get()
+        if master_password and old_service and old_email and old_password and new_email and new_service and new_password:
+            credsSubmit.config(state="normal")
+        else:
+            credsSubmit.config(state="disabled")
 
-    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
-    scrollbar.pack(side=RIGHT, fill=Y)
+    def modifyPassword_Submit():        
+        old_service = service_Input_Var.get() 
+        old_password = old_Password_Input_Var.get()
+        old_email = email_Input_Var.get()
+        master_password = masterPass_Input_Var.get().strip()
+        new_note = new_note_Input_Var.get()
+        new_password = new_password_Input_Var.get()
+        new_email = new_email_Input_Var.get()
+        new_service = new_service_Input_Var.get()
 
-    scrollable_frame = Frame(canvas)
+        ret = pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)  
+        if ret == 0:
+            messagebox.showinfo("Success", f"Credentials updated.")
+            showDefaultDisplay()
+        elif ret == 1:
+            messagebox.showinfo("Failed", "Old password is wrong. Impossible to modify the entry.")
+        elif ret == 2:
+            messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD.")
+        elif ret == 3:
+            messagebox.showinfo("Failed", "No enrty to modify found.")
+            
 
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
-        )
-    )
 
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
 
-    pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)
-    modify_result = pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)    
-    print(modify_result)
-    #None
-    
-    header_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)          
-    temp_Label = Label(canvas, text="main function need return").place(relx=0.5, rely=0.3, anchor=CENTER)
-    # def modify_entry() need return
+    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=modifyPassword_Submit)
+    credsSubmit.place(relx=0.5, rely=0.7, anchor=CENTER)    
 
-    pass
+    service_Input_Var.trace_add("write", validate_ModPsw)
+    old_Password_Input_Var.trace_add("write", validate_ModPsw)
+    email_Input_Var.trace_add("write", validate_ModPsw)
+    masterPass_Input_Var.trace_add("write", validate_ModPsw)
+    new_password_Input_Var.trace_add("write", validate_ModPsw)
+    new_email_Input_Var.trace_add("write", validate_ModPsw)
+    new_service_Input_Var.trace_add("write", validate_ModPsw)
+    validate_ModPsw()
+
+  
 
 
 def delEntry():

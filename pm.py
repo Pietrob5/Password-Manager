@@ -158,12 +158,16 @@ def modify_entry(old_service, old_email, old_password, new_service, new_email, n
                 conn.commit()
                 add_password(new_service, new_email, new_password, new_note, master_password)
                 conn.close()
+                return 0
             else:
                 print("Old password is wrong. Impossible to modify the entry.")
+                return 1
         except Exception as e:
             print(f"Error in decrtpting: {e}")
+            return 2
     else:
         print("No enrty to modify found.")
+        return 3
 
 
 def print_all(master_password):

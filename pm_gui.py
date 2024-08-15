@@ -142,7 +142,7 @@ def credsSubmit_func(*args):
     
 
 # Search Password # Button 2
-def searchPassword(*args):
+def searchPassword():
 
     defaultDisplay_Hide()        
 
@@ -163,9 +163,80 @@ def searchPassword(*args):
     service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
     service_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
 
-    searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)        
-    searchPassword_Submit.place(relx=0.5, rely=0.4, anchor=CENTER)            
+    def searchPassword_func(*args): #2 Result Display (Search Password)
+        resultWindow = Toplevel(root)
+        resultWindow.geometry("750x300")
+        resultWindow.title("Search Passwords")
 
+        window_width = 750
+        window_height = 300
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x_cordinate = int((screen_width/2) - (window_width/2))
+        y_cordinate = int((screen_height/2) - (window_height/2))
+        resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+        frame = Frame(resultWindow)
+        frame.pack(fill=BOTH, expand=True)
+        
+        canvas = Canvas(frame)
+        canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        scrollable_frame = Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        def on_mouse_wheel(event):
+            canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)  
+        canvas.bind_all("<Button-4>", on_mouse_wheel)
+        canvas.bind_all("<Button-5>", on_mouse_wheel)
+        
+
+        service = service_Input_Var.get()
+
+        email = pm.get_mails(service)    
+
+        master_password = masterPass_Input_Var.get()
+
+        if email:
+            for el in email:
+                psw = pm.get_password(service, el, masterPass_Input_Var.get())
+                note = pm.get_note(service, el)[0]
+                if psw:
+                    frame_for_result = Frame(scrollable_frame)
+                    frame_for_result.pack(pady=5, fill=X)
+                    
+                    result_label = Label(frame_for_result, text=f"Password for account '{el}' of '{service}' is: '{psw}', Note: {note}", anchor="center")
+                    result_label.pack(side=LEFT, padx=5)
+
+                    def copy_to_clipboard(password=psw):
+                        pyperclip.copy(password)
+                    
+                    copy_button = Button(frame_for_result, text="Copy Password", command=copy_to_clipboard)
+                    copy_button.pack(side=RIGHT, padx=5)
+                    showDefaultDisplay()
+                else:
+                    Label(scrollable_frame, text=f"Error in Decrypting for account {el}! Incorrect MASTER PASSWORD.", anchor="center").pack(pady=5, fill=X)
+        else:
+            Label(scrollable_frame, text=f"Incorrect MASTER PASSWORD or the entry does not exist.", anchor="center").pack(pady=5, fill=X)
+        
+        
+
+    searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)
+    searchPassword_Submit.place(relx=0.5, rely=0.4, anchor=CENTER)    
 
     def validate_searhPassword(*args):        
         if masterPass_Input_Var.get() and service_Input_Var.get():
@@ -174,113 +245,13 @@ def searchPassword(*args):
             service_Input.bind('<Return>', searchPassword_func)
             
         else:
-            searchPassword_Submit.config(state="disabled")    
-    
-    
+            searchPassword_Submit.config(state="disabled") 
     
     masterPass_Input_Var.trace_add("write", validate_searhPassword)
     service_Input_Var.trace_add("write", validate_searhPassword)
-    
-    validate_searhPassword()        
-
-    # pass
-
-
-def searchPassword_func(*args): #2 Result Display (Search Password)
-
-    resultWindow = Toplevel(root)
-    resultWindow.geometry("750x300")
-    resultWindow.title("Search Passwords")
-
-    window_width = 750
-    window_height = 300
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x_cordinate = int((screen_width/2) - (window_width/2))
-    y_cordinate = int((screen_height/2) - (window_height/2))
-    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
-
-    frame = Frame(resultWindow)
-    frame.pack(fill=BOTH, expand=True)
-    
-    canvas = Canvas(frame)
-    canvas.pack(side=LEFT, fill=BOTH, expand=True)
-
-    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
-    scrollbar.pack(side=RIGHT, fill=Y)
-
-    scrollable_frame = Frame(canvas)
-
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
-        )
-    )
-
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    def on_mouse_wheel(event):
-        canvas.yview_scroll(-1 * (event.delta // 120), "units")
-
-    canvas.bind_all("<MouseWheel>", on_mouse_wheel)  
-    canvas.bind_all("<Button-4>", on_mouse_wheel)
-    canvas.bind_all("<Button-5>", on_mouse_wheel)
-    
-
-    service = service_Input_Var.get()
-
-    email = pm.get_mails(service)    
-
-    master_password = masterPass_Input_Var.get()
-
-    if email:
-        for el in email:
-            psw = pm.get_password(service, el, masterPass_Input_Var.get())
-            note = pm.get_note(service, el)[0]
-            if psw:
-                frame_for_result = Frame(scrollable_frame)
-                frame_for_result.pack(pady=5, fill=X)
-                
-                result_label = Label(frame_for_result, text=f"Password for account '{el}' of '{service}' is: '{psw}', Note: {note}", anchor="center")
-                result_label.pack(side=LEFT, padx=5)
-
-                searchPassword()
-                
-
-                def copy_to_clipboard(password=psw):
-                    pyperclip.copy(password)
-                
-                copy_button = Button(frame_for_result, text="Copy Password", command=copy_to_clipboard)
-                copy_button.pack(side=RIGHT, padx=5)
-                showDefaultDisplay()
-            else:
-                Label(scrollable_frame, text=f"Error in Decrypting for account {el}! Incorrect MASTER PASSWORD.", anchor="center").pack(pady=5, fill=X)
-        else:
-            Label(scrollable_frame, text=f"Incorrect MASTER PASSWORD or the entry does not exist.", anchor="center").pack(pady=5, fill=X)
-        
-        
-
-    # searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)
-    # searchPassword_Submit.place(relx=0.5, rely=0.4, anchor=CENTER)    
-
-    # def validate_searhPassword(*args):        
-    #     if masterPass_Input_Var.get() and service_Input_Var.get():
-    #         searchPassword_Submit.config(state="normal")                    
-    #     else:
-    #         searchPassword_Submit.config(state="disabled")
-    
-    # masterPass_Input_Var.trace_add("write", validate_searhPassword)
-    # service_Input_Var.trace_add("write", validate_searhPassword)
-    # validate_searhPassword()        
-
-
+    validate_searhPassword()
 
 def modifyPassword(*args): # 3 Modify Password Button
-
-
-
     defaultDisplay_Hide()
 
     global old_service, old_email, old_password, old_note, new_service, new_email, new_password, new_note, master_password
@@ -502,6 +473,73 @@ def viewAll(*args):  # 5 View All Database
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
 
+    def printAll(*args): #5 Result Display (View All)
+
+        resultWindow = Toplevel(root)
+        resultWindow.geometry("750x300")
+        resultWindow.title("All your passwords")
+
+        window_width = 750
+        window_height = 300
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x_cordinate = int((screen_width/2) - (window_width/2))
+        y_cordinate = int((screen_height/2) - (window_height/2))
+        resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+        frame = Frame(resultWindow)
+        frame.pack(fill=BOTH, expand=True)
+
+        canvas = Canvas(frame)
+        canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        scrollable_frame = Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        def on_mouse_wheel(event):
+            canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)
+        canvas.bind_all("<Button-4>", on_mouse_wheel)
+        canvas.bind_all("<Button-5>", on_mouse_wheel)
+
+        Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
+
+        popResult = masterPass_Input_Var.get()
+        result = pm.print_all(popResult)
+        
+
+
+        if result:
+            for el in result:
+                frame_row = Frame(scrollable_frame)
+                frame_row.pack(fill=X, pady=5)
+                
+                label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
+                Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
+
+                if el[2] != "---":
+                    copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
+                    copy_button.pack(side=RIGHT, padx=10)
+                    showDefaultDisplay()  
+                else:
+                    Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
+        else:
+            Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+
+
     def validate_viewAll(*args):
         master_password = masterPass_Input_Var.get().strip()
         if master_password:
@@ -510,91 +548,13 @@ def viewAll(*args):  # 5 View All Database
         else:
             credsSubmit.config(state="disabled")
 
-    # def credsSubmit_func(*args):
-    #     # Function body remains the same
-    #     printAll()
+
 
     credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=printAll)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
 
     masterPass_Input_Var.trace_add("write", validate_viewAll)
     validate_viewAll()
-
-def printAll(*args): #5 Result Display (View All)
-        
-
-    resultWindow = Toplevel(root)
-    resultWindow.geometry("750x300")
-    resultWindow.title("All your passwords")
-
-    window_width = 750
-    window_height = 300
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x_cordinate = int((screen_width/2) - (window_width/2))
-    y_cordinate = int((screen_height/2) - (window_height/2))
-    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
-
-    frame = Frame(resultWindow)
-    frame.pack(fill=BOTH, expand=True)
-
-    canvas = Canvas(frame)
-    # canvas.pack(side=LEFT, fill=BOTH, expand=True)
-    canvas.pack(side=LEFT, expand=True)
-
-    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
-    scrollbar.pack(side=RIGHT, fill=Y)
-
-    scrollable_frame = Frame(canvas)
-
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
-        )
-    )
-
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    def on_mouse_wheel(event):
-        canvas.yview_scroll(-1 * (event.delta // 120), "units")
-
-    canvas.bind_all("<MouseWheel>", on_mouse_wheel)
-    canvas.bind_all("<Button-4>", on_mouse_wheel)
-    canvas.bind_all("<Button-5>", on_mouse_wheel)
-
-    Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
-
-    popResult = masterPass_Input_Var.get()
-    result = pm.print_all(popResult)
-    
-
-
-    if result:
-        for el in result:
-            frame_row = Frame(scrollable_frame)
-            frame_row.pack(fill=X, pady=5)
-            
-            label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
-            Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
-
-            if el[2] != "---":
-                copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
-                copy_button.pack(side=RIGHT, padx=10)
-                showDefaultDisplay()  
-            else:
-                Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
-        else:
-            Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)                 
-
-
-        viewAll()
-
-
-
-
-
 
 
 def searchByEmail(*args): #6
@@ -754,24 +714,23 @@ pm.create_db()
 
 #menu icons / buttons
 menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
-
-menuButton1 = Button(menuButtons, text='Add New Credentials', height=2, width=15, command=addCreds).place(relx=0.1, rely=0.5, anchor=CENTER)
+menuButton1 = Button(menuButtons, text='Add New Credentials (F1)', height=2, width=19, command=addCreds).place(relx=0.07, rely=0.5, anchor=CENTER)
 root.bind('<F1>', addCreds)
-menuButton2 = Button(menuButtons, text='Search a Password', height=2, width=15, command=searchPassword).place(relx=0.2, rely=0.5, anchor=CENTER)
+menuButton2 = Button(menuButtons, text='Search a Password (F2)', height=2, width=19, command=searchPassword).place(relx=0.19, rely=0.5, anchor=CENTER)
 root.bind('<F2>', searchPassword)
-menuButton3 = Button(menuButtons, text='Modify a Password', height=2, width=15, command=modifyPassword).place(relx=0.3, rely=0.5, anchor=CENTER)
+menuButton3 = Button(menuButtons, text='Modify a Password (F3)', height=2, width=19, command=modifyPassword).place(relx=0.31, rely=0.5, anchor=CENTER)
 root.bind('<F3>', modifyPassword)
-menuButton4 = Button(menuButtons, text='Delete a Password', height=2, width=15, command=delEntry).place(relx=0.4, rely=0.5, anchor=CENTER)
+menuButton4 = Button(menuButtons, text='Delete a Password (F4)', height=2, width=17, command=delEntry).place(relx=0.42, rely=0.5, anchor=CENTER)
 root.bind('<F4>', delEntry)
-menuButton5 = Button(menuButtons, text='View All Database', height=2, width=15, command=viewAll).place(relx=0.5, rely=0.5, anchor=CENTER)
+menuButton5 = Button(menuButtons, text='View All Database (F5)', height=2, width=17, command=viewAll).place(relx=0.53, rely=0.5, anchor=CENTER)
 root.bind('<F5>', viewAll)
-menuButton6 = Button(menuButtons, text='Search by Email', height=2, width=15, command=searchByEmail).place(relx=0.6, rely=0.5, anchor=CENTER)
+menuButton6 = Button(menuButtons, text='Search by Email (F6)', height=2, width=17, command=searchByEmail).place(relx=0.64, rely=0.5, anchor=CENTER)
 root.bind('<F6>', searchByEmail)
-menuButton7 = Button(menuButtons, text='Delete All Database', height=2, width=15, command=delDatabase).place(relx=0.7, rely=0.5, anchor=CENTER)
+menuButton7 = Button(menuButtons, text='Delete All Database (F7)', height=2, width=18, command=delDatabase).place(relx=0.75, rely=0.5, anchor=CENTER)
 root.bind('<F7>', delDatabase)
-menuButton8 = Button(menuButtons, text='Help', height=2, width=15, command=helpDisplay).place(relx=0.8, rely=0.5, anchor=CENTER)
+menuButton8 = Button(menuButtons, text='Help (F8)', height=2, width=12, command=helpDisplay).place(relx=0.86, rely=0.5, anchor=CENTER)
 root.bind('<F8>', helpDisplay)
-menuButton9 = Button(menuButtons, text='Quit', height=2, width=15, command=quit).place(relx=0.9, rely=0.5, anchor=CENTER)
+menuButton9 = Button(menuButtons, text='Quit (F9)', height=2, width=12, command=quit).place(relx=0.94, rely=0.5, anchor=CENTER)
 root.bind('<F9>', quit)
 
 menuButtons.pack(fill=BOTH)

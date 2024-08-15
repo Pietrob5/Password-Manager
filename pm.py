@@ -401,7 +401,7 @@ if __name__ == "__main__":
                 while not old_password:
                     print("Password cannot be empty.")
                     old_password = input("Insert the old password to modify: ").strip()
-                    old_note = get_note(old_service, old_email)[0]
+                old_note = get_note(old_service, old_email)
 
                 print()
                 new_service = input("Insert the new service: ").lower().strip()

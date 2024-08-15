@@ -1,8 +1,8 @@
 import sys
 from tkinter import *
-from tkinter import ttk
 from tkinter import messagebox
-import sqlite3
+
+import pyperclip
 import pm 
 
 root = Tk()
@@ -18,35 +18,21 @@ root.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
 root.minsize(1150, 500)
 root.title("Password Manager by Stevees")
 
-root.title("Password Manager by Stevees")
-# icon = PhotoImage(file = 'bill_icon.png')
-# root.iconphoto(True,icon)
-
-#namelabel Top
 nameLabel = Frame(root, relief='ridge', borderwidth=1, bg='gray80')
 namePlaceHolder = Label(nameLabel, text='Password Manager') #font text or image can be changed
 namePlaceHolder.pack(pady=10)
 nameLabel.pack(fill=X)
 
-#Global Variables
-masterPass_Input_Var, masterPass_ReEnter_Input_Var, service_Input_Var, password_Input_Var, email_Input_Var, note_Input_Var = [None]*6
+# masterPass_Input_Var, masterPass_ReEnter_Input_Var, service_Input_Var, password_Input_Var, email_Input_Var, note_Input_Var = [None]*6
 
-# Button Functions
 
 def defaultDisplay_Hide():
-
-    # defaultDisplay.destroy()    
-    # defaultDisplay.place_forget()
-    # defaultDisplay.pack_forget()    
-    # defaultDisplay.grid_forget()
 
     global displayFrame
     displayFrame.pack_forget()
     # displayFrame.destroy()
     displayFrame = LabelFrame(frame1, text='', relief=FLAT, bd=3)
     displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
-
-    pass
 
 
 
@@ -58,7 +44,6 @@ def helpDisplay():  # Button 8
     defaultDisplay.pack(expand=True, fill=BOTH, padx=5, pady=5)
     # defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
 
-    pass  
 
 def showDefaultDisplay():
     defaultDisplay_Hide()  # Nascondi il frame attuale
@@ -66,6 +51,7 @@ def showDefaultDisplay():
     "Password Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
     bd=4, font="helvetica", wraplength=900, padx=10, pady=10)
     defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
+
 
 def addCreds(): # Button 1
 
@@ -114,6 +100,53 @@ def addCreds(): # Button 1
     note_Input = Entry(displayFrame, width=30, textvariable=note_Input_Var)
     note_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
 
+    def credsSubmit_func(): 
+        service = service_Input_Var.get()
+        email = email_Input_Var.get()
+        password = password_Input_Var.get()
+        note = note_Input_Var.get()
+        master_password = masterPass_Input_Var.get()
+        master_password_confirmation = masterPass_ReEnter_Input_Var.get()
+
+        emptyInpCheck = [masterPass_Input_Var.get(), masterPass_ReEnter_Input_Var.get(), service_Input_Var.get(), password_Input_Var.get(), email_Input_Var.get()]    
+        
+        #Loop to check empty or same masterpass value.
+        for v in emptyInpCheck:        
+            
+            empyt_val = ""        
+
+            if empyt_val in emptyInpCheck:
+                messagebox.showwarning("Missing Field", "Missing one OR some fields\nPlease Re-Verify")
+                break
+
+            elif masterPass_Input_Var.get() != masterPass_ReEnter_Input_Var.get():
+                messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
+                # print("Not Equal Password")
+                break
+
+            elif 1 == pm.add_password(service, email, password, note, master_password):
+                messagebox.showinfo("Success", "Password succesfully stored.")
+                addCreds() # <- is always better idea than default as it helps user in adding multiple entries one after other
+                # showDefaultDisplay()         
+                break
+
+            else:
+                messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")            
+                break             
+
+        # if master_password != master_password_confirmation:
+        #     messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
+        #     print("Not Equal Password")
+        #     return
+        
+        # Calling the add_password function with the extracted values
+        # if 1 == pm.add_password(service, email, password, note, master_password):
+        #     messagebox.showinfo("Success", "Password succesfully stored.")
+        #     showDefaultDisplay()         
+        # else:
+        #     messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
+        #     return
+
     credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func) # -> credsSubmit_func()
     credsSubmit.place(relx=0.5, rely=0.5, anchor=CENTER)
 
@@ -140,53 +173,7 @@ def addCreds(): # Button 1
 #         credsSubmit.config(state="disabled")
 
 
-def credsSubmit_func(): 
-    service = service_Input_Var.get()
-    email = email_Input_Var.get()
-    password = password_Input_Var.get()
-    note = note_Input_Var.get()
-    master_password = masterPass_Input_Var.get()
-    master_password_confirmation = masterPass_ReEnter_Input_Var.get()
 
-    emptyInpCheck = [masterPass_Input_Var.get(), masterPass_ReEnter_Input_Var.get(), service_Input_Var.get(), password_Input_Var.get(), email_Input_Var.get()]    
-    
-    #Loop to check empty or same masterpass value.
-    for v in emptyInpCheck:        
-        
-        empyt_val = ""        
-
-        if empyt_val in emptyInpCheck:
-            messagebox.showwarning("Missing Field", "Missing one OR some fields\nPlease Re-Verify")
-            # print(f"missing values ---- {v}")            
-            break
-
-        elif masterPass_Input_Var.get() != masterPass_ReEnter_Input_Var.get():
-            messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
-            # print("Not Equal Password")
-            break
-
-        elif 1 == pm.add_password(service, email, password, note, master_password):
-            messagebox.showinfo("Success", "Password succesfully stored.")
-            addCreds() # <- is always better idea than default as it helps user in adding multiple entries one after other
-            # showDefaultDisplay()         
-            break
-
-        else:
-            messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")            
-            break             
-
-    # if master_password != master_password_confirmation:
-    #     messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
-    #     print("Not Equal Password")
-    #     return
-    
-    # Calling the add_password function with the extracted values
-    # if 1 == pm.add_password(service, email, password, note, master_password):
-    #     messagebox.showinfo("Success", "Password succesfully stored.")
-    #     showDefaultDisplay()         
-    # else:
-    #     messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
-    #     return
     
 
 # Search Password # Button 2
@@ -211,6 +198,78 @@ def searchPassword():
     service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
     service_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
 
+    def searchPassword_func(): #2 Result Display (Search Password)
+        resultWindow = Toplevel(root)
+        resultWindow.geometry("750x300")
+        resultWindow.title("Search Passwords")
+
+        window_width = 750
+        window_height = 300
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x_cordinate = int((screen_width/2) - (window_width/2))
+        y_cordinate = int((screen_height/2) - (window_height/2))
+        resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+        frame = Frame(resultWindow)
+        frame.pack(fill=BOTH, expand=True)
+        
+        canvas = Canvas(frame)
+        canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        scrollable_frame = Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        def on_mouse_wheel(event):
+            canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)  
+        canvas.bind_all("<Button-4>", on_mouse_wheel)
+        canvas.bind_all("<Button-5>", on_mouse_wheel)
+        
+
+        service = service_Input_Var.get()
+
+        email = pm.get_mails(service)    
+
+        master_password = masterPass_Input_Var.get()
+
+        if email:
+            for el in email:
+                psw = pm.get_password(service, el, masterPass_Input_Var.get())
+                note = pm.get_note(service, el)[0]
+                if psw:
+                    frame_for_result = Frame(scrollable_frame)
+                    frame_for_result.pack(pady=5, fill=X)
+                    
+                    result_label = Label(frame_for_result, text=f"Password for account '{el}' of '{service}' is: '{psw}', Note: {note}", anchor="center")
+                    result_label.pack(side=LEFT, padx=5)
+
+                    def copy_to_clipboard(password=psw):
+                        pyperclip.copy(password)
+                    
+                    copy_button = Button(frame_for_result, text="Copy Password", command=copy_to_clipboard)
+                    copy_button.pack(side=RIGHT, padx=5)
+                    showDefaultDisplay()
+                else:
+                    Label(scrollable_frame, text=f"Error in Decrypting for account {el}! Incorrect MASTER PASSWORD.", anchor="center").pack(pady=5, fill=X)
+        else:
+            Label(scrollable_frame, text=f"Incorrect MASTER PASSWORD or the entry does not exist.", anchor="center").pack(pady=5, fill=X)
+        
+        
+
     searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)
     searchPassword_Submit.place(relx=0.5, rely=0.4, anchor=CENTER)    
 
@@ -224,100 +283,7 @@ def searchPassword():
     service_Input_Var.trace_add("write", validate_searhPassword)
     validate_searhPassword()        
 
-    pass
 
-
-def searchPassword_func(): #2 Result Display (Search Password)
-
-    resultWindow = Toplevel(root)
-    resultWindow.geometry("750x300")
-    resultWindow.title("Search Passwords")
-
-    window_width = 750
-    window_height = 300
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x_cordinate = int((screen_width/2) - (window_width/2))
-    y_cordinate = int((screen_height/2) - (window_height/2))
-    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
-
-    frame = Frame(resultWindow)
-    frame.pack(fill=BOTH, expand=True)
-    
-    canvas = Canvas(frame)
-    canvas.pack(side=LEFT, fill=BOTH, expand=True)
-
-    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
-    scrollbar.pack(side=RIGHT, fill=Y)
-
-    scrollable_frame = Frame(canvas)
-
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
-        )
-    )
-
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    # Funzione per gestire lo scorrimento con la rotella del mouse
-    def on_mouse_wheel(event):
-        canvas.yview_scroll(-1 * (event.delta // 120), "units")
-
-    # Associa la rotella del mouse alla canvas
-    canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows
-    canvas.bind_all("<Button-4>", on_mouse_wheel)    # Linux
-    canvas.bind_all("<Button-5>", on_mouse_wheel)    # Linux
-    
-    # pm.get_password(service, email, master_password):
-
-    service = service_Input_Var.get()
-
-    email = pm.get_mails(service) #returns [] list    
-    # print(f"Email = {email}")        
-    # print(f"Service = {service}")
-    master_password = masterPass_Input_Var.get()
-    # print(f"Master Pass = {master_password}")    
-
-    if email:
-        for el in email:
-            psw = pm.get_password(service, el, masterPass_Input_Var.get())
-            note = pm.get_note(service, el)[0]
-            if psw:
-                Label(scrollable_frame, text=f"Password for account '{el}' of '{service}' is: '{psw}', Note: {note}", anchor="center").pack(pady=5, fill=X)
-                # if note == "":
-                #     Label(scrollable_frame, text=f"There are no notes", anchor="center").pack(pady=5, fill=X)
-                # else:
-                #     Label(scrollable_frame, text=f"Notes for '{service}' are: {note}", anchor="center").pack(pady=5, fill=X)
-                # Label(scrollable_frame, text="\n", anchor="center").pack(pady=5, fill=X)
-            else:
-                Label(scrollable_frame, text=f"Error in Decrypting for account {el}! Incorrect MASTER PASSWORD.", anchor="center").pack(pady=5, fill=X)
-    else:
-        Label(scrollable_frame, text=f"Incorrect MASTER PASSWORD or the entry does not exist.", anchor="center").pack(pady=5, fill=X)
-    
-    # retrieved_password = pm.get_password(service, email[0], master_password)        
-    # print(retrieved_password)
-    # result_Display_Fstring = f"Password for account '{email[0]}' of '{service}' is: {retrieved_password}"
-
-    # try:             
-
-    #     if retrieved_password:                       
-    #         result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
-    #         result_Display = Label(canvas, text=result_Display_Fstring, font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)            
-    #         searchPassword()
-
-    #     else:
-    #         result_Label = Label(canvas, text="Error in Decrypting !", font=('Helvetica 14 bold')).place(relx=0.5, rely=0.3, anchor=CENTER)
-    #         result_Display = Label(canvas, text="Please Re-Verify Master Pass & Service", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
-    
-    # except Exception:
-    #     result_Label = Label(canvas, text="Result", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.3, anchor=CENTER)
-    #     result_Display = Label(canvas, text="Error in Decrypting : Please Retry !", font=('Helvetica 12')).place(relx=0.5, rely=0.4, anchor=CENTER)
-    #     pass
-
-    # pass
 
 def modifyPassword(): # 3 Modify Password Button
 
@@ -545,78 +511,82 @@ def viewAll():  # 5 View All Database
         else:
             credsSubmit.config(state="disabled")
 
-    def credsSubmit_func():
-        # Function body remains the same
-        printAll()
+    def printAll(**kwargs): #5 Result Display (View All)
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func)
+        resultWindow = Toplevel(root)
+        resultWindow.geometry("750x300")
+        resultWindow.title("All your passwords")
+
+        window_width = 750
+        window_height = 300
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x_cordinate = int((screen_width/2) - (window_width/2))
+        y_cordinate = int((screen_height/2) - (window_height/2))
+        resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+        frame = Frame(resultWindow)
+        frame.pack(fill=BOTH, expand=True)
+
+        canvas = Canvas(frame)
+        canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        scrollable_frame = Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        def on_mouse_wheel(event):
+            canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)
+        canvas.bind_all("<Button-4>", on_mouse_wheel)
+        canvas.bind_all("<Button-5>", on_mouse_wheel)
+
+        Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
+
+        popResult = masterPass_Input_Var.get()
+        result = pm.print_all(popResult)
+        
+
+
+        if result:
+            for el in result:
+                frame_row = Frame(scrollable_frame)
+                frame_row.pack(fill=X, pady=5)
+                
+                label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
+                Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
+
+                if el[2] != "---":
+                    copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
+                    copy_button.pack(side=RIGHT, padx=10)
+                    showDefaultDisplay()  
+                else:
+                    Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
+        else:
+            Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+        
+         
+
+
+    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=printAll)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
 
     masterPass_Input_Var.trace_add("write", validate_viewAll)
     validate_viewAll()
 
-def printAll(**kwargs): #5 Result Display (View All)
 
-    resultWindow = Toplevel(root)
-    resultWindow.geometry("750x300")
-    resultWindow.title("All your passwords")
-
-    window_width = 750
-    window_height = 300
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x_cordinate = int((screen_width/2) - (window_width/2))
-    y_cordinate = int((screen_height/2) - (window_height/2))
-    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
-
-    frame = Frame(resultWindow)
-    frame.pack(fill=BOTH, expand=True)
-
-    canvas = Canvas(frame)
-    canvas.pack(side=LEFT, fill=BOTH, expand=True)
-
-    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
-    scrollbar.pack(side=RIGHT, fill=Y)
-
-    scrollable_frame = Frame(canvas)
-
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(
-            scrollregion=canvas.bbox("all")
-        )
-    )
-
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    # Funzione per gestire lo scorrimento con la rotella del mouse
-    def on_mouse_wheel(event):
-        canvas.yview_scroll(-1 * (event.delta // 120), "units")
-
-    # Associa la rotella del mouse alla canvas
-    canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows
-    canvas.bind_all("<Button-4>", on_mouse_wheel)    # Linux
-    canvas.bind_all("<Button-5>", on_mouse_wheel)    # Linux
-
-    Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
-
-    # Ottenere la master password e chiamare la funzione print_all
-    popResult = masterPass_Input_Var.get()
-    result = pm.print_all(popResult)
-    
-
-    # Mostrare i risultati nella finestra, centrati orizzontalmente
-
-    if result:
-            for el in result:
-                if el[2] == "---":
-                    Label(scrollable_frame, text=f"Error in decrtpting for service '{el[0]}' and email '{el[1]}'.", anchor="center").pack(pady=5, fill=X)
-                else:
-                    Label(scrollable_frame, text=f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}", anchor="center").pack(pady=5, fill=X)
-    else:
-        Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
-    showDefaultDisplay()   
 
 
 
@@ -692,24 +662,32 @@ def searchByEmail(): #6
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        # Funzione per gestire lo scorrimento con la rotella del mouse
         def on_mouse_wheel(event):
             canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
-        # Associa la rotella del mouse alla canvas
-        canvas.bind_all("<MouseWheel>", on_mouse_wheel)  # Windows
-        canvas.bind_all("<Button-4>", on_mouse_wheel)    # Linux
-        canvas.bind_all("<Button-5>", on_mouse_wheel)    # Linux
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)
+        canvas.bind_all("<Button-4>", on_mouse_wheel)
+        canvas.bind_all("<Button-5>", on_mouse_wheel)
 
         if result:
             for el in result:
-                if el[2] == "---":
-                    Label(scrollable_frame, text=f"Error in decrtpting for service '{el[0]}' and email '{el[1]}'.", anchor="center").pack(pady=5, fill=X)
+                frame_row = Frame(scrollable_frame)
+                frame_row.pack(fill=X, pady=5)
+
+                label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
+                Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
+
+                if el[2] != "---":
+                    copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
+                    copy_button.pack(side=RIGHT, padx=10)
+                    showDefaultDisplay()
                 else:
-                    Label(scrollable_frame, text=f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}", anchor="center").pack(pady=5, fill=X)
+                    Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
         else:
             Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
-        showDefaultDisplay()   
+
+
+           
 
     credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)

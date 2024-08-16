@@ -170,7 +170,7 @@ def searchPassword(*args):
 
     def searchPassword_func(*args): #2 Result Display (Search Password)
         resultWindow = Toplevel(root)
-        resultWindow.geometry("750x300")
+        resultWindow.geometry("900x400")
         resultWindow.title("Search Passwords")
         try:
             icon = PhotoImage(file = r'../Password-Manager/icon.png')
@@ -179,8 +179,8 @@ def searchPassword(*args):
             pass
         
 
-        window_width = 750
-        window_height = 300
+        window_width = 900
+        window_height = 400
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         x_cordinate = int((screen_width/2) - (window_width/2))
@@ -490,7 +490,7 @@ def viewAll(*args):  # 5 View All Database
     def printAll(*args): #5 Result Display (View All)
 
         resultWindow = Toplevel(root)
-        resultWindow.geometry("750x300")
+        resultWindow.geometry("900x400")
         resultWindow.title("All your passwords")
         try:
             icon = PhotoImage(file = r'../Password-Manager/icon.png')
@@ -499,8 +499,8 @@ def viewAll(*args):  # 5 View All Database
             pass
         
 
-        window_width = 750
-        window_height = 300
+        window_width = 900
+        window_height = 400
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         x_cordinate = int((screen_width/2) - (window_width/2))
@@ -621,7 +621,7 @@ def searchByEmail(*args): #6
         result = pm.find_by_mail(email, master_password)
 
         resultWindow = Toplevel(root)
-        resultWindow.geometry("750x300")
+        resultWindow.geometry("900x400")
         resultWindow.title("Search Results")
         try:
             icon = PhotoImage(file = r'../Password-Manager/icon.png')
@@ -629,8 +629,8 @@ def searchByEmail(*args): #6
         except Exception as e:
             pass
 
-        window_width = 750
-        window_height = 300
+        window_width = 900
+        window_height = 400
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))

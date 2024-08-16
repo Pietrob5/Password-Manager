@@ -17,8 +17,8 @@ y_cordinate = int((screen_height/2) - (window_height/2))
 root.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
 root.minsize(1150, 500)
 root.title("Password Manager by Stevees")
-# icon = PhotoImage(file = 'bill_icon.png')
-# root.iconphoto(True,icon)
+icon = PhotoImage(file = 'Password-Manager-main\icon.png')
+root.iconphoto(False,icon)
 
 nameLabel = Frame(root, relief='ridge', borderwidth=1, bg='gray80')
 namePlaceHolder = Label(nameLabel, text='Password Manager') #font text or image can be changed
@@ -142,7 +142,7 @@ def credsSubmit_func(*args):
     
 
 # Search Password # Button 2
-def searchPassword():
+def searchPassword(*args):
 
     defaultDisplay_Hide()        
 
@@ -167,6 +167,8 @@ def searchPassword():
         resultWindow = Toplevel(root)
         resultWindow.geometry("750x300")
         resultWindow.title("Search Passwords")
+        icon = PhotoImage(file = 'Password-Manager-main\icon.png')
+        resultWindow.iconphoto(False,icon)
 
         window_width = 750
         window_height = 300
@@ -478,6 +480,8 @@ def viewAll(*args):  # 5 View All Database
         resultWindow = Toplevel(root)
         resultWindow.geometry("750x300")
         resultWindow.title("All your passwords")
+        icon = PhotoImage(file = 'Password-Manager-main\icon.png')
+        resultWindow.iconphoto(False,icon)
 
         window_width = 750
         window_height = 300
@@ -602,6 +606,8 @@ def searchByEmail(*args): #6
         resultWindow = Toplevel(root)
         resultWindow.geometry("750x300")
         resultWindow.title("Search Results")
+        icon = PhotoImage(file = 'Password-Manager-main\icon.png')
+        resultWindow.iconphoto(False,icon)
 
         window_width = 750
         window_height = 300
@@ -713,27 +719,31 @@ def quit(*args): #9
 pm.create_db()
 
 #menu icons / buttons
+
 menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
-menuButton1 = Button(menuButtons, text='Add New Credentials (F1)', height=2, width=19, command=addCreds).place(relx=0.07, rely=0.5, anchor=CENTER)
+
+menuButton1 = Button(menuButtons, text='Add New Credentials (F1)', height=3, width=16, command=addCreds, wraplength=120).place(relx=0.1, rely=0.5, anchor=CENTER)
 root.bind('<F1>', addCreds)
-menuButton2 = Button(menuButtons, text='Search a Password (F2)', height=2, width=19, command=searchPassword).place(relx=0.19, rely=0.5, anchor=CENTER)
+menuButton2 = Button(menuButtons, text='Search a Password (F2)', height=3, width=16, command=searchPassword, wraplength=110).place(relx=0.2, rely=0.5, anchor=CENTER)
 root.bind('<F2>', searchPassword)
-menuButton3 = Button(menuButtons, text='Modify a Password (F3)', height=2, width=19, command=modifyPassword).place(relx=0.31, rely=0.5, anchor=CENTER)
+menuButton3 = Button(menuButtons, text='Modify a Password (F3)', height=3, width=16, command=modifyPassword, wraplength=110).place(relx=0.3, rely=0.5, anchor=CENTER)
 root.bind('<F3>', modifyPassword)
-menuButton4 = Button(menuButtons, text='Delete a Password (F4)', height=2, width=17, command=delEntry).place(relx=0.42, rely=0.5, anchor=CENTER)
+menuButton4 = Button(menuButtons, text='Delete a Password (F4)', height=3, width=16, command=delEntry, wraplength=110).place(relx=0.4, rely=0.5, anchor=CENTER)
 root.bind('<F4>', delEntry)
-menuButton5 = Button(menuButtons, text='View All Database (F5)', height=2, width=17, command=viewAll).place(relx=0.53, rely=0.5, anchor=CENTER)
+menuButton5 = Button(menuButtons, text='View All Database (F5)', height=3, width=16, command=viewAll, wraplength=110).place(relx=0.5, rely=0.5, anchor=CENTER)
 root.bind('<F5>', viewAll)
-menuButton6 = Button(menuButtons, text='Search by Email (F6)', height=2, width=17, command=searchByEmail).place(relx=0.64, rely=0.5, anchor=CENTER)
+menuButton6 = Button(menuButtons, text='Search by Email (F6)', height=3, width=16, command=searchByEmail, wraplength=90).place(relx=0.6, rely=0.5, anchor=CENTER)
 root.bind('<F6>', searchByEmail)
-menuButton7 = Button(menuButtons, text='Delete All Database (F7)', height=2, width=18, command=delDatabase).place(relx=0.75, rely=0.5, anchor=CENTER)
+menuButton7 = Button(menuButtons, text='Delete All Database (F7)', height=3, width=16, command=delDatabase, wraplength=110).place(relx=0.7, rely=0.5, anchor=CENTER)
 root.bind('<F7>', delDatabase)
-menuButton8 = Button(menuButtons, text='Help (F8)', height=2, width=12, command=helpDisplay).place(relx=0.86, rely=0.5, anchor=CENTER)
+menuButton8 = Button(menuButtons, text='Help (F8)', height=3, width=16, command=helpDisplay, wraplength=30).place(relx=0.8, rely=0.5, anchor=CENTER)
 root.bind('<F8>', helpDisplay)
-menuButton9 = Button(menuButtons, text='Quit (F9)', height=2, width=12, command=quit).place(relx=0.94, rely=0.5, anchor=CENTER)
+menuButton9 = Button(menuButtons, text='Quit (F9)', height=3, width=16, command=quit, wraplength=30).place(relx=0.9, rely=0.5, anchor=CENTER)
 root.bind('<F9>', quit)
 
 menuButtons.pack(fill=BOTH)
+
+# menuButtons.pack(fill=BOTH)
 
 #mainFrame
 frame1 = LabelFrame(root, text='Main Page', bg='silver', relief=SOLID, bd=3)

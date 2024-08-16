@@ -66,6 +66,7 @@ def addCreds(*args): # Button 1
     masterPass_Label.place(relx=0.3, rely=0.2, anchor=CENTER, x=-50)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show="*")
     masterPass_Input.place(relx=0.4, rely=0.2, anchor=CENTER)
+    masterPass_Input.focus()
     masterPass_Input.bind('<Return>', credsSubmit_func)                
 
     masterPass_ReEnter_Label = Label(displayFrame, text="Re-Enter MASTER PASSWORD :")
@@ -160,6 +161,7 @@ def searchPassword(*args):
     masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+    masterPass_Input.focus()
 
     service_Label = Label(displayFrame, text="Enter Service Name :")
     service_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=55)
@@ -276,6 +278,7 @@ def modifyPassword(*args): # 3 Modify Password Button
     service_Label.place(relx=0.3, rely=0.2, anchor=CENTER, x=2)
     service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
     service_Input.place(relx=0.4, rely=0.2, anchor=CENTER)
+    service_Input.focus()
 
     email_Input_Var = StringVar()    
     old_email = email_Input_Var.get()
@@ -413,6 +416,7 @@ def delEntry(*args): #4
     masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=36)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+    masterPass_Input.focus()
 
     service_Label = Label(displayFrame, text="Service :")
     service_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=87)
@@ -481,6 +485,7 @@ def viewAll(*args):  # 5 View All Database
     masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+    masterPass_Input.focus()
 
     def printAll(*args): #5 Result Display (View All)
 
@@ -584,10 +589,11 @@ def searchByEmail(*args): #6
     email_Input_Var = StringVar()
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
-    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
+    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)    
 
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+    masterPass_Input.focus()
 
     email_Label = Label(displayFrame, text="Email :")
     email_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=90)
@@ -699,6 +705,7 @@ def delDatabase(*args): #7
     masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+    masterPass_Input.focus()
 
     def validate_delDatabase(*args):
         master_password = masterPass_Input_Var.get().strip()
@@ -768,7 +775,7 @@ displayFrame = LabelFrame(frame1, text='', relief=FLAT, bd=3)
 displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
 
-helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."
+helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."'\n''\n'"PROJECT LINK : github.com/Pietrob5/Password-Manager"
 
 defaultDisplay = Label(displayFrame, bg='silver', text=
 "Password Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",

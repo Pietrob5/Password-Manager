@@ -17,8 +17,11 @@ y_cordinate = int((screen_height/2) - (window_height/2))
 root.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
 root.minsize(1150, 500)
 root.title("Password Manager by Stevees")
-icon = PhotoImage(file = 'Password-Manager-main\icon.png')
-root.iconphoto(False,icon)
+try:
+    icon = PhotoImage(file=r'../Password-Manager/icon.png')
+    root.iconphoto(False, icon)
+except Exception as e:
+    pass
 
 nameLabel = Frame(root, relief='ridge', borderwidth=1, bg='gray80')
 namePlaceHolder = Label(nameLabel, text='Password Manager') #font text or image can be changed
@@ -167,8 +170,12 @@ def searchPassword(*args):
         resultWindow = Toplevel(root)
         resultWindow.geometry("750x300")
         resultWindow.title("Search Passwords")
-        icon = PhotoImage(file = 'Password-Manager-main\icon.png')
-        resultWindow.iconphoto(False,icon)
+        try:
+            icon = PhotoImage(file = r'../Password-Manager/icon.png')
+            resultWindow.iconphoto(False,icon)
+        except Exception as e:
+            pass
+        
 
         window_width = 750
         window_height = 300
@@ -480,8 +487,12 @@ def viewAll(*args):  # 5 View All Database
         resultWindow = Toplevel(root)
         resultWindow.geometry("750x300")
         resultWindow.title("All your passwords")
-        icon = PhotoImage(file = 'Password-Manager-main\icon.png')
-        resultWindow.iconphoto(False,icon)
+        try:
+            icon = PhotoImage(file = r'../Password-Manager/icon.png')
+            resultWindow.iconphoto(False,icon)
+        except Exception as e:
+            pass
+        
 
         window_width = 750
         window_height = 300
@@ -606,8 +617,11 @@ def searchByEmail(*args): #6
         resultWindow = Toplevel(root)
         resultWindow.geometry("750x300")
         resultWindow.title("Search Results")
-        icon = PhotoImage(file = 'Password-Manager-main\icon.png')
-        resultWindow.iconphoto(False,icon)
+        try:
+            icon = PhotoImage(file = r'../Password-Manager/icon.png')
+            resultWindow.iconphoto(False,icon)
+        except Exception as e:
+            pass
 
         window_width = 750
         window_height = 300

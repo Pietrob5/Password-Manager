@@ -4,7 +4,11 @@
 
 ## Overview
 
-This project is a password manager application written in Python. It supports both CLI and GUI interfaces, making it versatile and user-friendly. The GUI is built using `tkinter`, and all core functions are consistent across both interfaces, ensuring seamless functionality regardless of the interface used. Passwords are securely encrypted using the `cryptography.fernet` module, employing AES encryption. The master password generates encryption keys and is never stored in the database. Using `pyinstaller pm_gui.py --onefile --noconsole` is possible to easily create pm_gui.exe.
+This project is a password manager application developed in Python, offering both CLI and GUI interfaces for versatility and user convenience. The GUI is implemented using `tkinter`, while all core functionalities remain consistent across both interfaces to ensure a seamless user experience.
+
+Passwords are securely encrypted using the `cryptography.fernet` module, which employs AES encryption. The master password is used solely to generate encryption keys and is never stored in the database.
+
+The application can be easily packaged into an executable file (`pm_gui.exe`) using the command: `pyinstaller pm_gui.py --onefile --noconsole`. Users can navigate between different features using the buttons at the top of the GUI or by pressing function keys F1-F9. When one or multiple passwords are displayed, users can copy the desired password to the clipboard and paste it as needed.
 
 
 ## Features

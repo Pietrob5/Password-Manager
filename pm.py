@@ -26,6 +26,7 @@ def generate_key(password, salt):
 def create_db():
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS creditCard (id INTEGER PRIMARY KEY, name TEXT not null, number TEXT not null, expiryDate BLOB not null, cvv TEXT, salt BLOB not null)''')
     c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT not null, email TEXT not null, encrypted_password BLOB not null, note TEXT, salt BLOB not null, CONSTRAINT un1 UNIQUE (service, email))''')
     conn.commit()
     conn.close()
@@ -58,6 +59,36 @@ def add_password(service, email, password, note, master_password):
 
     except sqlite3.IntegrityError as e:
         print(f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
+        conn.close()
+        return 0
+
+    
+    conn.close()
+    return 1
+
+
+def add_credit_card(name, number, expiry, cvv, master_password):
+    # if password_exists(service, email):
+    #     print(f"Account '{email}' for service '{service}' already exists.")
+    #     return 0
+    try:
+        salt = bcrypt.gensalt()
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        encrypted_number = cipher_suite.encrypt(number.encode())
+        encrypted_expiry = cipher_suite.encrypt(expiry.encode())
+        encrypted_cvv = cipher_suite.encrypt(cvv.encode())
+
+        conn = sqlite3.connect('passwords.db')
+        c = conn.cursor()
+
+        c.execute("INSERT INTO creditCard (name, number, expiryDate, cvv, salt) VALUES (?, ?, ?, ?, ?)",
+                  (name, encrypted_number, encrypted_expiry, encrypted_cvv, salt))
+        conn.commit()
+        print("Credit Card added successfully.")
+
+    except sqlite3.IntegrityError as e:
+        print(f"Error: Unable to add Credit Card.")
         conn.close()
         return 0
 

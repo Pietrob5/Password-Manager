@@ -63,47 +63,130 @@ def addCreds(*args): # Button 1
     header_Label = Label(displayFrame, text="Add Credentials", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
+    masterPass_Label.place(relx=0.3, rely=0.3, anchor=CENTER, x=-50)
+    masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show="*")
+    masterPass_Input.place(relx=0.4, rely=0.3, anchor=CENTER)
+    masterPass_Input.focus()
+    masterPass_Input.bind('<Return>', credsSubmit_func)                
+
+    masterPass_ReEnter_Label = Label(displayFrame, text="Re-Enter MASTER PASSWORD :")
+    masterPass_ReEnter_Label.place(relx=0.3, rely=0.4, anchor=CENTER, x=-58)    
+    masterPass_ReEnter_Input = Entry(displayFrame, width=30, textvariable=masterPass_ReEnter_Input_Var, show="*")
+    masterPass_ReEnter_Input.place(relx=0.4, rely=0.4, anchor=CENTER)
+    masterPass_ReEnter_Input.bind('<Return>', credsSubmit_func)    
+
+    service_Label = Label(displayFrame, text="Service :")
+    service_Label.place(relx=0.3, rely=0.5, anchor=CENTER, x=2)
+    service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
+    service_Input.place(relx=0.4, rely=0.5, anchor=CENTER)
+    service_Input.bind('<Return>', credsSubmit_func)                
+
+    email_Label = Label(displayFrame, text="Email :")
+    email_Label.place(relx=0.5, rely=0.3, anchor=CENTER, x=50)
+    email_Input = Entry(displayFrame, width=30, textvariable=email_Input_Var)
+    email_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=50)    
+    email_Input.bind('<Return>', credsSubmit_func)            
+
+    password_Label = Label(displayFrame, text="Password :")
+    password_Label.place(relx=0.5, rely=0.4, anchor=CENTER, x=41)
+    password_Input = Entry(displayFrame, width=30, textvariable=password_Input_Var)
+    password_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
+    password_Input.bind('<Return>', credsSubmit_func)            
+
+    note_Label = Label(displayFrame, text="Note :")
+    note_Label.place(relx=0.5, rely=0.5, anchor=CENTER, x=52)
+    optional_Label = Label(displayFrame, text="(Optional)")
+    optional_Label.place(relx=0.8, rely=0.5, anchor=CENTER, x=-70)
+    note_Input = Entry(displayFrame, width=30, textvariable=note_Input_Var)
+    note_Input.bind('<Return>', credsSubmit_func)            
+    note_Input.place(relx=0.6, rely=0.5, anchor=CENTER, x=50)
+
+    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func) # -> credsSubmit_func()
+    credsSubmit.place(relx=0.5, rely=0.6, anchor=CENTER)
+    CreditCard = Button(displayFrame, text='Add a Credit Card', height=2, width=25, command=credidCard) 
+    CreditCard.place(relx=0.5, rely=0.2, anchor=CENTER)
+
+def credidCard(*args):
+    defaultDisplay_Hide()        
+
+    global masterPass_Input_Var, masterPass_ReEnter_Input_Var, card_name_Input_Var, card_number_Input_Var, expiry_Input_Var, cvv_Input_Var, credsSubmit
+
+    masterPass_Input_Var = StringVar()
+    masterPass_ReEnter_Input_Var = StringVar()
+    card_name_Input_Var = StringVar()
+    card_number_Input_Var = StringVar()
+    expiry_Input_Var = StringVar()
+    cvv_Input_Var = StringVar()
+
+    header_Label = Label(displayFrame, text="Add Credit Card", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
+    masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
     masterPass_Label.place(relx=0.3, rely=0.2, anchor=CENTER, x=-50)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show="*")
     masterPass_Input.place(relx=0.4, rely=0.2, anchor=CENTER)
     masterPass_Input.focus()
-    masterPass_Input.bind('<Return>', credsSubmit_func)                
+    masterPass_Input.bind('<Return>', newCreditCard)                
 
     masterPass_ReEnter_Label = Label(displayFrame, text="Re-Enter MASTER PASSWORD :")
     masterPass_ReEnter_Label.place(relx=0.3, rely=0.3, anchor=CENTER, x=-58)    
     masterPass_ReEnter_Input = Entry(displayFrame, width=30, textvariable=masterPass_ReEnter_Input_Var, show="*")
     masterPass_ReEnter_Input.place(relx=0.4, rely=0.3, anchor=CENTER)
-    masterPass_ReEnter_Input.bind('<Return>', credsSubmit_func)    
+    masterPass_ReEnter_Input.bind('<Return>', newCreditCard)    
 
-    service_Label = Label(displayFrame, text="Service :")
-    service_Label.place(relx=0.3, rely=0.4, anchor=CENTER, x=2)
-    service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
-    service_Input.place(relx=0.4, rely=0.4, anchor=CENTER)
-    service_Input.bind('<Return>', credsSubmit_func)                
+    card_name_Label = Label(displayFrame, text="Card Name :")
+    card_name_Label.place(relx=0.29, rely=0.4, anchor=CENTER, x=2)
+    card_name_Input = Entry(displayFrame, width=30, textvariable=card_name_Input_Var)
+    card_name_Input.place(relx=0.4, rely=0.4, anchor=CENTER)
+    card_name_Input.bind('<Return>', newCreditCard)                
 
-    email_Label = Label(displayFrame, text="Email :")
-    email_Label.place(relx=0.5, rely=0.2, anchor=CENTER, x=50)
-    email_Input = Entry(displayFrame, width=30, textvariable=email_Input_Var)
-    email_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=50)    
-    email_Input.bind('<Return>', credsSubmit_func)            
+    card_number_Label = Label(displayFrame, text="Card Number :")
+    card_number_Label.place(relx=0.49, rely=0.2, anchor=CENTER, x=50)
+    card_number_Input = Entry(displayFrame, width=30, textvariable=card_number_Input_Var)
+    card_number_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=50)    
+    card_number_Input.bind('<Return>', newCreditCard)            
 
-    password_Label = Label(displayFrame, text="Password :")
-    password_Label.place(relx=0.5, rely=0.3, anchor=CENTER, x=41)
-    password_Input = Entry(displayFrame, width=30, textvariable=password_Input_Var)
-    password_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=50)
-    password_Input.bind('<Return>', credsSubmit_func)            
+    expiry_Input_Var_Label = Label(displayFrame, text="Expiry Date :")
+    expiry_Input_Var_Label.place(relx=0.5, rely=0.3, anchor=CENTER, x=41)
+    expiry_Input_Var_Input = Entry(displayFrame, width=30, textvariable=expiry_Input_Var)
+    expiry_Input_Var_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=50)
+    expiry_Input_Var_Input.bind('<Return>', newCreditCard)            
 
-    note_Label = Label(displayFrame, text="Note :")
-    note_Label.place(relx=0.5, rely=0.4, anchor=CENTER, x=52)
-    optional_Label = Label(displayFrame, text="(Optional)")
-    optional_Label.place(relx=0.8, rely=0.4, anchor=CENTER, x=-70)
-    note_Input = Entry(displayFrame, width=30, textvariable=note_Input_Var)
-    note_Input.bind('<Return>', credsSubmit_func)            
-    note_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
+    cvv_Label = Label(displayFrame, text="CVV :")
+    cvv_Label.place(relx=0.5, rely=0.4, anchor=CENTER, x=52)
+    cvv_Input = Entry(displayFrame, width=30, textvariable=cvv_Input_Var)
+    cvv_Input.bind('<Return>', newCreditCard)            
+    cvv_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func) # -> credsSubmit_func()
+    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=newCreditCard)
     credsSubmit.place(relx=0.5, rely=0.5, anchor=CENTER)
 
+
+def newCreditCard(*args):
+    emptyInpCheck = [masterPass_Input_Var.get(), masterPass_ReEnter_Input_Var.get(), card_name_Input_Var.get(), card_number_Input_Var.get(), expiry_Input_Var.get(), cvv_Input_Var.get()]    
+    
+    #Loop to check empty or same masterpass value.
+    for v in emptyInpCheck:        
+        
+        empyt_val = ""        
+
+        if empyt_val in emptyInpCheck:
+            messagebox.showwarning("Missing Field", "Missing one OR some fields\nPlease Re-Verify")            
+            break
+
+        elif masterPass_Input_Var.get() != masterPass_ReEnter_Input_Var.get():
+            messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
+            break
+
+        elif 1 == pm.add_credit_card(card_name_Input_Var.get(), card_number_Input_Var.get(), expiry_Input_Var.get(), cvv_Input_Var.get(), masterPass_Input_Var.get()):
+            messagebox.showinfo("Success", "Credit Card succesfully stored.")
+            addCreds()         
+            break
+
+        else:
+            messagebox.showinfo("Failed", f"Error: Unable to add Credit Card.")            
+            break
+    print("ciaso")
+    
 
 
 def credsSubmit_func(*args): 

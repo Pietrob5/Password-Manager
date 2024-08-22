@@ -1,7 +1,7 @@
 import sys
 from tkinter import *
 from tkinter import messagebox
-
+import re
 import pyperclip
 import pm 
 
@@ -133,7 +133,7 @@ def credidCard(*args):
     masterPass_ReEnter_Input.place(relx=0.4, rely=0.3, anchor=CENTER)
     masterPass_ReEnter_Input.bind('<Return>', newCreditCard)    
 
-    card_name_Label = Label(displayFrame, text="Card Name :")
+    card_name_Label = Label(displayFrame, text="Bank Name :")
     card_name_Label.place(relx=0.29, rely=0.4, anchor=CENTER, x=2)
     card_name_Input = Entry(displayFrame, width=30, textvariable=card_name_Input_Var)
     card_name_Input.place(relx=0.4, rely=0.4, anchor=CENTER)
@@ -143,7 +143,9 @@ def credidCard(*args):
     card_number_Label.place(relx=0.49, rely=0.2, anchor=CENTER, x=50)
     card_number_Input = Entry(displayFrame, width=30, textvariable=card_number_Input_Var)
     card_number_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=50)    
-    card_number_Input.bind('<Return>', newCreditCard)            
+    card_number_Input.bind('<Return>', newCreditCard)          
+    card_number_Label = Label(displayFrame, text="(Format: 1234-1234-1234-1234)", font=('Helvetica', 8))
+    card_number_Label.place(relx=0.6, rely=0.24, anchor=CENTER, x=50)  
 
     expiry_Input_Var_Label = Label(displayFrame, text="Expiry Date :")
     expiry_Input_Var_Label.place(relx=0.5, rely=0.3, anchor=CENTER, x=41)
@@ -177,6 +179,18 @@ def newCreditCard(*args):
             messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
             break
 
+        elif not re.match(r'^\d{4}-\d{4}-\d{4}-\d{4}$', card_number_Input_Var.get()):
+            messagebox.showwarning("Failed", "Card Number format is wrong\nPlease Re-Verify")
+            break
+
+        elif not re.match(r'^\d{2}/\d{2}$', expiry_Input_Var.get()):
+            messagebox.showwarning("Failed", "Expiry date format is wrong\nPlease Re-Verify")
+            break
+
+        elif not re.match(r'^\d{3}$', cvv_Input_Var.get()):
+            messagebox.showwarning("Failed", "CVV format is wrong\nPlease Re-Verify")
+            break
+
         elif 1 == pm.add_credit_card(card_name_Input_Var.get(), card_number_Input_Var.get(), expiry_Input_Var.get(), cvv_Input_Var.get(), masterPass_Input_Var.get()):
             messagebox.showinfo("Success", "Credit Card succesfully stored.")
             addCreds()         
@@ -185,7 +199,6 @@ def newCreditCard(*args):
         else:
             messagebox.showinfo("Failed", f"Error: Unable to add Credit Card.")            
             break
-    print("ciaso")
     
 
 
@@ -225,13 +238,10 @@ def credsSubmit_func(*args):
 
 
 
-
-    
-
 # Search Password # Button 2
 def searchPassword(*args):
 
-    defaultDisplay_Hide()        
+    defaultDisplay_Hide()
 
     global masterPass_Input_Var, service_Input_Var, searchPassword_Submit
 
@@ -240,16 +250,20 @@ def searchPassword(*args):
 
     header_Label = Label(displayFrame, text="Search Password", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
 
+    # New "Search Credit Card" button
+    searchCreditCard_Button = Button(displayFrame, text="Search Credit Card", height=2, width=25, command=searchCreditCard)
+    searchCreditCard_Button.place(relx=0.5, rely=0.2, anchor=CENTER)  # Placed between header_Label and masterPass_Label
+
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
-    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
+    masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
-    masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+    masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
     masterPass_Input.focus()
 
     service_Label = Label(displayFrame, text="Enter Service Name :")
-    service_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=55)
+    service_Label.place(relx=0.4, rely=0.4, anchor=CENTER, x=55)
     service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
-    service_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+    service_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=-35)
 
     def searchPassword_func(*args): #2 Result Display (Search Password)
         resultWindow = Toplevel(root)
@@ -301,7 +315,7 @@ def searchPassword(*args):
 
         service = service_Input_Var.get()
 
-        email = pm.get_mails(service)    
+        email = pm.get_credit_Card(service, 'asd')    
 
         master_password = masterPass_Input_Var.get()
 
@@ -330,7 +344,7 @@ def searchPassword(*args):
         
 
     searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)
-    searchPassword_Submit.place(relx=0.5, rely=0.4, anchor=CENTER)    
+    searchPassword_Submit.place(relx=0.5, rely=0.5, anchor=CENTER)    
 
     def validate_searhPassword(*args):        
         if masterPass_Input_Var.get() and service_Input_Var.get():
@@ -344,6 +358,113 @@ def searchPassword(*args):
     masterPass_Input_Var.trace_add("write", validate_searhPassword)
     service_Input_Var.trace_add("write", validate_searhPassword)
     validate_searhPassword()
+
+# Function for searching Credit Card
+def searchCreditCard():
+    defaultDisplay_Hide()
+
+    masterPass_Input_Var = StringVar()
+    card_name_Input_Var = StringVar()
+
+    header_Label = Label(displayFrame, text="Search Credit Card", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
+
+    masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
+    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
+    masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
+    masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+    masterPass_Input.focus()
+
+    card_name_Label = Label(displayFrame, text="Bank Name :")
+    card_name_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
+    card_name_Input = Entry(displayFrame, width=30, textvariable=card_name_Input_Var)
+    card_name_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+
+    def printCreditCard(*args):
+        master_password = masterPass_Input_Var.get()
+        card_name = card_name_Input_Var.get()
+
+        result = pm.get_credit_Card(card_name, master_password)
+
+        resultWindow = Toplevel(root)
+        resultWindow.geometry("900x400")
+        resultWindow.title("Search Results")
+        try:
+            icon = PhotoImage(file = r'../Password-Manager/icon.png')
+            resultWindow.iconphoto(False,icon)
+        except Exception as e:
+            pass
+
+        window_width = 900
+        window_height = 400
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
+        resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+
+        frame = Frame(resultWindow)
+        frame.pack(fill=BOTH, expand=True)
+
+        canvas = Canvas(frame)
+        canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+        scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+
+        scrollable_frame = Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        def on_mouse_wheel(event):
+            canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)
+        canvas.bind_all("<Button-4>", on_mouse_wheel)
+        canvas.bind_all("<Button-5>", on_mouse_wheel)
+
+        if result:
+            for el in result:
+                frame_row = Frame(scrollable_frame)
+                frame_row.pack(fill=X, pady=5)
+
+                label_text = f"Bank Name: '{el[0]}', Number: '{el[1]}', Expiry Date: '{el[2]}', CVV: '{el[3]}'"
+                Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
+
+                if el[2] != "---":
+                    copy_button = Button(frame_row, text="Copy Number", command=lambda num=el[1]: pyperclip.copy(num))
+                    copy_button.pack(side=RIGHT, padx=10)
+                    showDefaultDisplay()
+                else:
+                    Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
+        else:
+            Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+
+
+
+    def validate_creditCard(*args):
+        master_password = masterPass_Input_Var.get().strip()
+        if master_password and card_name_Input_Var.get():
+            credsSubmit.config(state="normal")
+            masterPass_Input.bind('<Return>', printCreditCard)
+            card_name_Input.bind('<Return>', printCreditCard)
+        else:
+            credsSubmit.config(state="disabled")
+
+    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=printCreditCard)
+    credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
+    masterPass_Input_Var.trace_add("write", validate_creditCard)
+    card_name_Input_Var.trace_add("write", validate_creditCard)
+    validate_creditCard()
+
 
 def modifyPassword(*args): # 3 Modify Password Button
     defaultDisplay_Hide()

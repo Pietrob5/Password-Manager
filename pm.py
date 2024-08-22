@@ -68,9 +68,6 @@ def add_password(service, email, password, note, master_password):
 
 
 def add_credit_card(name, number, expiry, cvv, master_password):
-    # if password_exists(service, email):
-    #     print(f"Account '{email}' for service '{service}' already exists.")
-    #     return 0
     try:
         salt = bcrypt.gensalt()
         key = generate_key(master_password, salt)
@@ -85,7 +82,7 @@ def add_credit_card(name, number, expiry, cvv, master_password):
         c.execute("INSERT INTO creditCard (name, number, expiryDate, cvv, salt) VALUES (?, ?, ?, ?, ?)",
                   (name, encrypted_number, encrypted_expiry, encrypted_cvv, salt))
         conn.commit()
-        print("Credit Card added successfully.")
+        # print("Credit Card added successfully.")
 
     except sqlite3.IntegrityError as e:
         print(f"Error: Unable to add Credit Card.")
@@ -95,6 +92,44 @@ def add_credit_card(name, number, expiry, cvv, master_password):
     
     conn.close()
     return 1
+
+
+def get_credit_Card(name, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+
+    c.execute("SELECT name, number, expiryDate, cvv, salt FROM creditCard WHERE name = ?", (name,))
+    results = c.fetchall()
+    conn.close()
+
+    if not results:
+        print(f"No credit cards found for name '{name}'.")
+        return None
+
+    cards = []
+    for result in results:
+        encrypted_number = result[1]
+        encrypted_expiry = result[2]
+        encrypted_cvv = result[3]
+        salt = result[4]
+
+        key = generate_key(master_password, salt)
+
+        cipher_suite = Fernet(key)
+
+        try:
+            number = cipher_suite.decrypt(encrypted_number).decode()
+            expiry = cipher_suite.decrypt(encrypted_expiry).decode()
+            cvv = cipher_suite.decrypt(encrypted_cvv).decode()
+
+            cards.append((name, number, expiry, cvv))
+        except Exception as e:
+            cards.append((name, '---', '---', '---'))
+            # print(f"Error in decrypting card data for '{name}': {e}")
+            continue
+
+    print(cards)
+    return cards
 
 
 

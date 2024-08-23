@@ -20,6 +20,7 @@ The application can be easily packaged into an executable file (`pm_gui.exe`) us
 - **View All Entries**: Display all stored passwords.
 - **Find Services by Email**: List all services associated with a particular email.
 - **Delete All Entries**: Remove all entries from the database.
+- **Credit Card Management**: Add, search, and delete credit card information securely, ensuring sensitive card details are protected.
 
 ## Menu Options
 
@@ -64,6 +65,14 @@ The application can be easily packaged into an executable file (`pm_gui.exe`) us
 
 - Prompts for the master password.
 - Asks for confirmation before deleting all entries.
+
+### Credit Card Management
+
+- Prompts for card details such as card number, expiry date, CVV, and associated email. Encrypts and stores this information in the database.
+- Prompts for the master password and card details. Retrieves and displays the credit card information associated with the given email or card number.
+- Prompts for the master password, email, and card number for confirmation. Deletes the credit card entry from the database.
+
+  **Important Note**: Credit cards cannot be modified once added. This is a security measure since banks do not allow the modification of individual elements like CVV or card numbers. If card details change, users must delete the old entry and add a new one.
 
 ## Important Notes
 
@@ -116,7 +125,7 @@ The application can be easily packaged into an executable file (`pm_gui.exe`) us
 
 ### Data Security
 
-- Ensures that passwords are securely encrypted and only accessible with the correct master password.
+- Ensures that passwords and credit card details are securely encrypted and only accessible with the correct master password.
 
 ### Graphical User Interface (GUI)
 

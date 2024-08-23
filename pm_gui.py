@@ -4,6 +4,8 @@ from tkinter import messagebox
 import re
 import pyperclip
 import pm 
+import threading
+import time
 
 root = Tk()
 window_width = 1280
@@ -103,7 +105,7 @@ def addCreds(*args): # Button 1
 
     credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func) # -> credsSubmit_func()
     credsSubmit.place(relx=0.5, rely=0.6, anchor=CENTER)
-    CreditCard = Button(displayFrame, text='Add a Credit Card', height=2, width=25, command=credidCard) 
+    CreditCard = Button(displayFrame, text='Add Credit Card', height=2, width=25, command=credidCard) 
     CreditCard.place(relx=0.5, rely=0.2, anchor=CENTER)
 
 def credidCard(*args):
@@ -226,7 +228,6 @@ def credsSubmit_func(*args):
 
         elif masterPass_Input_Var.get() != masterPass_ReEnter_Input_Var.get():
             messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
-            # print("Not Equal Password")
             break
 
         elif 1 == pm.add_password(service, email, password, note, master_password):
@@ -738,6 +739,9 @@ def delcredidCard(*args):
     validate_delCard()
 
 
+import threading
+import time
+
 def viewAll(*args):  # 5 View All Database
 
     defaultDisplay_Hide()        
@@ -753,24 +757,40 @@ def viewAll(*args):  # 5 View All Database
     masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
     masterPass_Input.focus()
 
-    def printAll(*args): #5 Result Display (View All)
+    loading_animation_label = None
+
+    def loading_animation():
+        dots = ""
+        while not stop_animation.is_set():
+            dots += "."
+            if len(dots) > 5:
+                dots = ""
+            loading_animation_label.after(0, loading_animation_label.config, {"text": "Just a second" + dots})
+            time.sleep(0.5)
+
+    def stop_loading_animation():
+        stop_animation.set()
+        loading_animation_label.after(0, loading_animation_label.config, {"text": ""})
+
+    def printAll(*args):  # 5 Result Display (View All)
+
+        nonlocal loading_animation_label
 
         resultWindow = Toplevel(root)
         resultWindow.geometry("900x400")
         resultWindow.title("All your passwords")
         try:
             icon = PhotoImage(file = r'../Password-Manager/icon.png')
-            resultWindow.iconphoto(False,icon)
+            resultWindow.iconphoto(False, icon)
         except Exception as e:
             pass
-        
 
         window_width = 900
         window_height = 400
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x_cordinate = int((screen_width/2) - (window_width/2))
-        y_cordinate = int((screen_height/2) - (window_height/2))
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
         resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
 
         frame = Frame(resultWindow)
@@ -803,28 +823,39 @@ def viewAll(*args):  # 5 View All Database
 
         Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
 
+        loading_animation_label = Label(scrollable_frame, text="Loading", font=('Helvetica 14 italic'))
+        loading_animation_label.pack(pady=10)
+
+        global stop_animation
+        stop_animation = threading.Event()
+
+        threading.Thread(target=loading_animation, daemon=True).start()
+
         popResult = masterPass_Input_Var.get()
-        result = pm.print_all(popResult)
-        
 
+        def run_pm_print_all():
+            result = pm.print_all(popResult)
 
-        if result:
-            for el in result:
-                frame_row = Frame(scrollable_frame)
-                frame_row.pack(fill=X, pady=5)
-                
-                label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
-                Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
+            stop_loading_animation()
 
-                if el[2] != "---":
-                    copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
-                    copy_button.pack(side=RIGHT, padx=10)
-                    showDefaultDisplay()  
-                else:
-                    Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
-        else:
-            Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+            if result:
+                for el in result:
+                    frame_row = Frame(scrollable_frame)
+                    frame_row.pack(fill=X, pady=5)
+                    
+                    label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
+                    Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
 
+                    if el[2] != "---":
+                        copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
+                        copy_button.pack(side=RIGHT, padx=10)
+                        showDefaultDisplay()  
+                    else:
+                        Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
+            else:
+                Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+
+        threading.Thread(target=run_pm_print_all, daemon=True).start()
 
     def validate_viewAll(*args):
         master_password = masterPass_Input_Var.get().strip()
@@ -834,13 +865,12 @@ def viewAll(*args):  # 5 View All Database
         else:
             credsSubmit.config(state="disabled")
 
-
-
     credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=printAll)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
 
     masterPass_Input_Var.trace_add("write", validate_viewAll)
     validate_viewAll()
+
 
 
 def searchByEmail(*args): #6

@@ -26,7 +26,7 @@ def generate_key(password, salt):
 def create_db():
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS creditCard (id INTEGER PRIMARY KEY, name TEXT not null, number TEXT not null, expiryDate BLOB not null, cvv TEXT, salt BLOB not null)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS creditCard (id INTEGER PRIMARY KEY, name TEXT not null, number TEXT not null unique, expiryDate BLOB not null, cvv TEXT, salt BLOB not null)''')
     c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT not null, email TEXT not null, encrypted_password BLOB not null, note TEXT, salt BLOB not null, CONSTRAINT un1 UNIQUE (service, email))''')
     conn.commit()
     conn.close()
@@ -67,8 +67,48 @@ def add_password(service, email, password, note, master_password):
     return 1
 
 
+# def add_credit_card(name, number, expiry, cvv, master_password):
+#     try:
+#         salt = bcrypt.gensalt()
+#         key = generate_key(master_password, salt)
+#         cipher_suite = Fernet(key)
+#         encrypted_number = cipher_suite.encrypt(number.encode())
+#         encrypted_expiry = cipher_suite.encrypt(expiry.encode())
+#         encrypted_cvv = cipher_suite.encrypt(cvv.encode())
+
+#         conn = sqlite3.connect('passwords.db')
+#         c = conn.cursor()
+
+#         c.execute("INSERT INTO creditCard (name, number, expiryDate, cvv, salt) VALUES (?, ?, ?, ?, ?)",
+#                   (name, encrypted_number, encrypted_expiry, encrypted_cvv, salt))
+#         conn.commit()
+#     except sqlite3.IntegrityError as e:
+#         # print(f"Error: Unable to add Credit Card.")
+#         conn.close()
+#         return 0   
+#     conn.close()
+#     return 1
+
+
 def add_credit_card(name, number, expiry, cvv, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+
     try:
+        c.execute("SELECT number, salt FROM creditCard")
+        existing_cards = c.fetchall()
+
+        for encrypted_card, salt in existing_cards:
+            key = generate_key(master_password, salt)
+            cipher_suite = Fernet(key)
+            try:
+                decrypted_card = cipher_suite.decrypt(encrypted_card).decode()
+                if decrypted_card == number:
+                    conn.close()
+                    return 2
+            except Exception as e:
+                continue
+
         salt = bcrypt.gensalt()
         key = generate_key(master_password, salt)
         cipher_suite = Fernet(key)
@@ -76,22 +116,18 @@ def add_credit_card(name, number, expiry, cvv, master_password):
         encrypted_expiry = cipher_suite.encrypt(expiry.encode())
         encrypted_cvv = cipher_suite.encrypt(cvv.encode())
 
-        conn = sqlite3.connect('passwords.db')
-        c = conn.cursor()
-
         c.execute("INSERT INTO creditCard (name, number, expiryDate, cvv, salt) VALUES (?, ?, ?, ?, ?)",
                   (name, encrypted_number, encrypted_expiry, encrypted_cvv, salt))
         conn.commit()
-        # print("Credit Card added successfully.")
 
     except sqlite3.IntegrityError as e:
-        print(f"Error: Unable to add Credit Card.")
         conn.close()
         return 0
 
-    
     conn.close()
     return 1
+
+
 
 
 def get_credit_Card(name, master_password):
@@ -128,7 +164,6 @@ def get_credit_Card(name, master_password):
             # print(f"Error in decrypting card data for '{name}': {e}")
             continue
 
-    print(cards)
     return cards
 
 
@@ -179,6 +214,36 @@ def get_mails(service):
     results = c.fetchall()
     conn.close()
     return [result[0] for result in results]
+
+def del_credit_card(name, number, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    
+    c.execute("SELECT number, salt FROM creditCard WHERE name = ?", (name,))
+    result = c.fetchone()
+    
+    if result:
+        encrypted_number, salt = result
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        
+        try:
+            decrypted_number = cipher_suite.decrypt(encrypted_number).decode()
+            
+            if decrypted_number == number:
+                c.execute("DELETE FROM creditCard WHERE name = ? AND number = ?", (name, encrypted_number))
+                conn.commit()
+                conn.close()
+                return 1
+            else:
+                conn.close()
+                return 0
+        except Exception as e:
+            conn.close()
+            return 0
+    else:
+        conn.close()
+        return 2
 
 
 def remove_entry(service, email, master_password):

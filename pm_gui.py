@@ -183,21 +183,24 @@ def newCreditCard(*args):
             messagebox.showwarning("Failed", "Card Number format is wrong\nPlease Re-Verify")
             break
 
-        elif not re.match(r'^\d{2}/\d{2}$', expiry_Input_Var.get()):
+        elif not re.match(r'^(0[1-9]|1[0-2])/(2[3-9]|[3-9][0-9])$', expiry_Input_Var.get()):
             messagebox.showwarning("Failed", "Expiry date format is wrong\nPlease Re-Verify")
             break
 
         elif not re.match(r'^\d{3}$', cvv_Input_Var.get()):
             messagebox.showwarning("Failed", "CVV format is wrong\nPlease Re-Verify")
             break
-
-        elif 1 == pm.add_credit_card(card_name_Input_Var.get(), card_number_Input_Var.get(), expiry_Input_Var.get(), cvv_Input_Var.get(), masterPass_Input_Var.get()):
+        
+        ret = pm.add_credit_card(card_name_Input_Var.get(), card_number_Input_Var.get(), expiry_Input_Var.get(), cvv_Input_Var.get(), masterPass_Input_Var.get())
+        if 1 == ret:
             messagebox.showinfo("Success", "Credit Card succesfully stored.")
             addCreds()         
             break
-
+        elif ret == 2:
+            messagebox.showinfo("Failed", f"Error: A credit card with this number already exists.")            
+            break
         else:
-            messagebox.showinfo("Failed", f"Error: Unable to add Credit Card.")            
+            messagebox.showinfo("Failed", f"Error: Unable to add Credit Card. Check if the Card is already in database.")            
             break
     
 
@@ -250,9 +253,8 @@ def searchPassword(*args):
 
     header_Label = Label(displayFrame, text="Search Password", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
 
-    # New "Search Credit Card" button
     searchCreditCard_Button = Button(displayFrame, text="Search Credit Card", height=2, width=25, command=searchCreditCard)
-    searchCreditCard_Button.place(relx=0.5, rely=0.2, anchor=CENTER)  # Placed between header_Label and masterPass_Label
+    searchCreditCard_Button.place(relx=0.5, rely=0.2, anchor=CENTER)
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
     masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
@@ -315,8 +317,7 @@ def searchPassword(*args):
 
         service = service_Input_Var.get()
 
-        email = pm.get_credit_Card(service, 'asd')    
-
+        email = pm.email = pm.get_mails(service)    
         master_password = masterPass_Input_Var.get()
 
         if email:
@@ -617,25 +618,25 @@ def delEntry(*args): #4
     password_Input_Var = StringVar()
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
-    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=36)
+    masterPass_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=36)
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
-    masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+    masterPass_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
     masterPass_Input.focus()
 
     service_Label = Label(displayFrame, text="Service :")
-    service_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=87)
+    service_Label.place(relx=0.4, rely=0.4, anchor=CENTER, x=87)
     service_Input = Entry(displayFrame, width=30, textvariable=service_Input_Var)
-    service_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
+    service_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=-35)
 
     email_Label = Label(displayFrame, text="Email :")
-    email_Label.place(relx=0.4, rely=0.4, anchor=CENTER, x=90)
+    email_Label.place(relx=0.4, rely=0.5, anchor=CENTER, x=90)
     email_Input = Entry(displayFrame, width=30, textvariable=email_Input_Var)
-    email_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=-35)
+    email_Input.place(relx=0.6, rely=0.5, anchor=CENTER, x=-35)
 
     password_Label = Label(displayFrame, text="Password :")
-    password_Label.place(relx=0.4, rely=0.5, anchor=CENTER, x=85)
+    password_Label.place(relx=0.4, rely=0.6, anchor=CENTER, x=85)
     password_Input = Entry(displayFrame, width=30, textvariable=password_Input_Var)
-    password_Input.place(relx=0.6, rely=0.5, anchor=CENTER, x=-35)
+    password_Input.place(relx=0.6, rely=0.6, anchor=CENTER, x=-35)
 
     def validate_delPsw(*args):
         master_password = masterPass_Input_Var.get().strip()
@@ -656,9 +657,9 @@ def delEntry(*args): #4
                 ret = pm.remove_entry(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get())
                 if ret == 1:
                     messagebox.showinfo("Success", f"Password for service '{service_Input_Var.get()}' and email '{email_Input_Var.get()}' removed.")
-                    delEntry()                                        
-                # elif ret == 2:
-                #     messagebox.showinfo("Failed", "No enrty to remove found.")
+                    showDefaultDisplay()                                        
+                elif ret == 2:
+                    messagebox.showinfo("Failed", "No Credit Card to remove found.")
                 elif ret == 0:
                     messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD.")
             elif pm.get_password(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get()) == None:
@@ -667,13 +668,74 @@ def delEntry(*args): #4
                 messagebox.showinfo("Failed", "Wrong password. Cant't delete the entry.")
 
     credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delPsw)
-    credsSubmit.place(relx=0.5, rely=0.6, anchor=CENTER)        
+    credsSubmit.place(relx=0.5, rely=0.7, anchor=CENTER)        
+    CreditCard = Button(displayFrame, text='Delete a Credit Card', height=2, width=25, command=delcredidCard) 
+    CreditCard.place(relx=0.5, rely=0.2, anchor=CENTER)
+
     masterPass_Input_Var.trace_add("write", validate_delPsw)
     email_Input_Var.trace_add("write", validate_delPsw)
     service_Input_Var.trace_add("write", validate_delPsw)
     password_Input_Var.trace_add("write", validate_delPsw)
     validate_delPsw()
+
+def delcredidCard(*args):
+    defaultDisplay_Hide()
+
+    masterPass_Input_Var = StringVar()
+    card_name_Input_Var = StringVar()
+    number_Input_Var = StringVar()
+
+    header_Label = Label(displayFrame, text="Delete Credit Card", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
+
+
+    masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
+    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
+    masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
+    masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
+    masterPass_Input.focus()
+
+    card_name_Label = Label(displayFrame, text="Bank Name :")
+    card_name_Label.place(relx=0.4, rely=0.3, anchor=CENTER, x=35)
+    card_name_Input = Entry(displayFrame, width=30, textvariable=card_name_Input_Var)
+    card_name_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
     
+    number_Label = Label(displayFrame, text="Card Number :")
+    number_Label.place(relx=0.4, rely=0.4, anchor=CENTER, x=35)
+    number_Input = Entry(displayFrame, width=30, textvariable=number_Input_Var)
+    number_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=-35)
+    card_number_Label = Label(displayFrame, text="(Format: 1234-1234-1234-1234)", font=('Helvetica', 8))
+    card_number_Label.place(relx=0.53, rely=0.44, anchor=CENTER, x=50) 
+
+    def delCredit(*args):
+        confirm = messagebox.askyesno("Confirm Delete", f"ATTENTION! Are you sure to delete {card_name_Input_Var.get()}'s {number_Input_Var.get()} Credit Card? This operation can't be undone.")
+        if confirm:
+            ret = pm.del_credit_card(card_name_Input_Var.get(), number_Input_Var.get(), masterPass_Input_Var.get())
+            if ret == 1:
+                messagebox.showinfo("Success", f"Credit Card for bank '{card_name_Input_Var.get()}' with number '{number_Input_Var.get()}' removed.")
+                showDefaultDisplay()                                        
+            elif ret == 2:
+                messagebox.showinfo("Failed", "No enrty to remove found.")
+            elif ret == 0:
+                messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD.")
+
+
+    def validate_delCard(*args):
+            master_password = masterPass_Input_Var.get().strip()
+            if master_password and card_name_Input_Var.get() and number_Input_Var.get():
+                credsSubmit.config(state="normal")
+                masterPass_Input.bind('<Return>', delCredit)
+                card_name_Input.bind('<Return>', delCredit)
+                number_Input.bind('<Return>', delCredit)
+            else:
+                credsSubmit.config(state="disabled")
+
+
+    credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delCredit)
+    credsSubmit.place(relx=0.5, rely=0.5, anchor=CENTER)  
+    masterPass_Input_Var.trace_add("write", validate_delCard)
+    number_Input_Var.trace_add("write", validate_delCard)
+    card_name_Input_Var.trace_add("write", validate_delCard)
+    validate_delCard()
 
 
 def viewAll(*args):  # 5 View All Database

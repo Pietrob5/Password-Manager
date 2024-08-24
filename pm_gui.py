@@ -89,11 +89,18 @@ def addCreds(*args): # Button 1
     email_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=50)    
     email_Input.bind('<Return>', credsSubmit_func)            
 
+    def suggest_password():
+        strong_password = pm.generate_password()
+        password_Input_Var.set(strong_password)
+    
+
     password_Label = Label(displayFrame, text="Password :")
     password_Label.place(relx=0.5, rely=0.4, anchor=CENTER, x=41)
     password_Input = Entry(displayFrame, width=30, textvariable=password_Input_Var)
     password_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
-    password_Input.bind('<Return>', credsSubmit_func)            
+    password_Input.bind('<Return>', credsSubmit_func)    
+    suggestPassword_Button = Button(displayFrame, text="Suggest Strong Password", command=suggest_password)
+    suggestPassword_Button.place(relx=0.75, rely=0.4, anchor=CENTER, x=50)        
 
     note_Label = Label(displayFrame, text="Note :")
     note_Label.place(relx=0.5, rely=0.5, anchor=CENTER, x=52)
@@ -193,7 +200,7 @@ def newCreditCard(*args):
             messagebox.showwarning("Failed", "CVV format is wrong\nPlease Re-Verify")
             break
         
-        ret = pm.add_credit_card(card_name_Input_Var.get(), card_number_Input_Var.get(), expiry_Input_Var.get(), cvv_Input_Var.get(), masterPass_Input_Var.get())
+        ret = pm.add_credit_card(card_name_Input_Var.get().lower(), card_number_Input_Var.get(), expiry_Input_Var.get(), cvv_Input_Var.get(), masterPass_Input_Var.get())
         if 1 == ret:
             messagebox.showinfo("Success", "Credit Card succesfully stored.")
             addCreds()         
@@ -230,7 +237,7 @@ def credsSubmit_func(*args):
             messagebox.showwarning("Failed", "MASTER Password Not Matching\nPlease Re-Verify")
             break
 
-        elif 1 == pm.add_password(service, email, password, note, master_password):
+        elif 1 == pm.add_password(service.lower(), email.lower(), password, note, master_password):
             messagebox.showinfo("Success", "Password succesfully stored.")
             addCreds() # <- is always better idea than default as it helps user in adding multiple entries one after other
             # showDefaultDisplay()         
@@ -318,12 +325,11 @@ def searchPassword(*args):
 
         service = service_Input_Var.get()
 
-        email = pm.email = pm.get_mails(service)    
-        master_password = masterPass_Input_Var.get()
+        email =  pm.get_mails(service.lower())    
 
         if email:
             for el in email:
-                psw = pm.get_password(service, el, masterPass_Input_Var.get())
+                psw = pm.get_password(service.lower(), el.lower(), masterPass_Input_Var.get())
                 note = pm.get_note(service, el)[0]
                 if psw:
                     frame_for_result = Frame(scrollable_frame)
@@ -386,7 +392,7 @@ def searchCreditCard():
         master_password = masterPass_Input_Var.get()
         card_name = card_name_Input_Var.get()
 
-        result = pm.get_credit_Card(card_name, master_password)
+        result = pm.get_credit_Card(card_name.lower(), master_password)
 
         resultWindow = Toplevel(root)
         resultWindow.geometry("900x400")
@@ -577,7 +583,7 @@ def modifyPassword(*args): # 3 Modify Password Button
         new_email = new_email_Input_Var.get()
         new_service = new_service_Input_Var.get()
 
-        ret = pm.modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password)  
+        ret = pm.modify_entry(old_service.lower(), old_email.lower(), old_password, new_service.lower(), new_email.lower(), new_password, new_note, master_password)  
         if ret == 0:
             messagebox.showinfo("Success", f"Credentials updated.")
             showDefaultDisplay()
@@ -654,8 +660,8 @@ def delEntry(*args): #4
     def delPsw(*args):
         confirm = messagebox.askyesno("Confirm Delete", f"ATTENTION! Are you sure to delete {email_Input_Var.get()}'s {service_Input_Var.get()} password? This operation can't be undone.")
         if confirm:
-            if pm.get_password(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get()) == password_Input_Var.get():
-                ret = pm.remove_entry(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get())
+            if pm.get_password(service_Input_Var.get().lower(), email_Input_Var.get().lower(), masterPass_Input_Var.get()) == password_Input_Var.get():
+                ret = pm.remove_entry(service_Input_Var.get().lower(), email_Input_Var.get().lower(), masterPass_Input_Var.get())
                 if ret == 1:
                     messagebox.showinfo("Success", f"Password for service '{service_Input_Var.get()}' and email '{email_Input_Var.get()}' removed.")
                     showDefaultDisplay()                                        
@@ -663,7 +669,7 @@ def delEntry(*args): #4
                     messagebox.showinfo("Failed", "No Credit Card to remove found.")
                 elif ret == 0:
                     messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD.")
-            elif pm.get_password(service_Input_Var.get(), email_Input_Var.get(), masterPass_Input_Var.get()) == None:
+            elif pm.get_password(service_Input_Var.get().lower(), email_Input_Var.get().lower(), masterPass_Input_Var.get()) == None:
                 messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD or service or email.")
             else:
                 messagebox.showinfo("Failed", "Wrong password. Cant't delete the entry.")
@@ -710,7 +716,7 @@ def delcredidCard(*args):
     def delCredit(*args):
         confirm = messagebox.askyesno("Confirm Delete", f"ATTENTION! Are you sure to delete {card_name_Input_Var.get()}'s {number_Input_Var.get()} Credit Card? This operation can't be undone.")
         if confirm:
-            ret = pm.del_credit_card(card_name_Input_Var.get(), number_Input_Var.get(), masterPass_Input_Var.get())
+            ret = pm.del_credit_card(card_name_Input_Var.get().lower(), number_Input_Var.get(), masterPass_Input_Var.get())
             if ret == 1:
                 messagebox.showinfo("Success", f"Credit Card for bank '{card_name_Input_Var.get()}' with number '{number_Input_Var.get()}' removed.")
                 showDefaultDisplay()                                        
@@ -914,7 +920,7 @@ def searchByEmail(*args): #6
         email = email_Input_Var.get()
         master_password = masterPass_Input_Var.get()
 
-        result = pm.find_by_mail(email, master_password)
+        result = pm.find_by_mail(email.lower(), master_password)
 
         resultWindow = Toplevel(root)
         resultWindow.geometry("900x400")

@@ -6,6 +6,9 @@ import base64
 import sys
 import signal
 import getpass
+import re
+import string
+import secrets
 # import hashlib
 
 
@@ -39,12 +42,28 @@ def create_db():
 #     conn.close()
 #     return count > 0
 
+def generate_password():
+    while True:
+        alphabet = string.ascii_letters + string.digits + "!@#$%^&*()_+{}:;<>,.?/~"
+        
+        password = [
+            secrets.choice(string.ascii_uppercase),
+            secrets.choice(string.ascii_lowercase),
+            secrets.choice(string.digits),
+            secrets.choice("!@#$%^&*()_+{}:;<>,.?/~")
+        ]
+        #12 char
+        password += [secrets.choice(alphabet) for _ in range(14)]
+        #shuffle order
+        secrets.SystemRandom().shuffle(password)
+        password = ''.join(password)
+        pattern = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:;<>,.?/~])[A-Za-z\d!@#$%^&*()_+{}:;<>,.?/~]{10,}$'
+        if re.match(pattern, password):
+            return password
+
 def add_password(service, email, password, note, master_password):
-    # if password_exists(service, email):
-    #     print(f"Account '{email}' for service '{service}' already exists.")
-    #     return 0
     try:
-        salt = bcrypt.gensalt()  # Genera un nuovo sale per ogni password
+        salt = bcrypt.gensalt()
         key = generate_key(master_password, salt)
         cipher_suite = Fernet(key)
         encrypted_password = cipher_suite.encrypt(password.encode())

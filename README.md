@@ -1,6 +1,6 @@
 # Password Manager
 
-![image](https://github.com/user-attachments/assets/5206d55e-ed65-4068-935f-02779dbaa451)
+![image](https://github.com/user-attachments/assets/7aeaba95-b962-4175-8fee-104d0d34644d)
 
 ## Overview
 

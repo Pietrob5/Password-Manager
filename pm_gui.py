@@ -1047,39 +1047,57 @@ button_width = 18
 
 menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
 
-menuButton1 = ttk.Button(menuButtons, text='Add New Credentials\n(F1)', bootstyle="primary-outline", command=addCreds, width=button_width)
+F1_Text= "Add New Credentials"
+F1 = "(F1)"
+menuButton1 = ttk.Button(menuButtons, text=f"{F1_Text}\n{F1.center(30)}", bootstyle="primary-outline", command=addCreds, width=button_width)
 menuButton1.grid(row=0, column=0, padx=5, pady=10, ipady=15)  # ipady aumenta l'altezza interna
 root.bind('<F1>', addCreds)
 
-menuButton2 = ttk.Button(menuButtons, text='Search a Password\n(F2)', bootstyle="success-outline", command=searchPassword, width=button_width)
+F2_Text= "Search a Password"
+F2 = "(F2)"
+menuButton2 = ttk.Button(menuButtons, text=f"{F2_Text}\n{F2.center(30)}", bootstyle="success-outline", command=searchPassword, width=button_width)
 menuButton2.grid(row=0, column=1, padx=5, pady=10, ipady=15)
 root.bind('<F2>', searchPassword)
 
-menuButton3 = ttk.Button(menuButtons, text='Modify a Password\n(F3)', bootstyle="info-outline", command=modifyPassword, width=button_width)
+F3_Text= "Modify a Password"
+F3 = "(F3)"
+menuButton3 = ttk.Button(menuButtons, text=f"{F3_Text}\n{F3.center(30)}", bootstyle="info-outline", command=modifyPassword, width=button_width)
 menuButton3.grid(row=0, column=2, padx=5, pady=10, ipady=15)
 root.bind('<F3>', modifyPassword)
 
-menuButton4 = ttk.Button(menuButtons, text='Delete a Password\n(F4)', bootstyle="danger-outline", command=delEntry, width=button_width)
+F4_Text= "Delete a Password"
+F4 = "(F4)"
+menuButton4 = ttk.Button(menuButtons, text=f"{F4_Text}\n{F4.center(30)}", bootstyle="danger-outline", command=delEntry, width=button_width)
 menuButton4.grid(row=0, column=3, padx=5, pady=10, ipady=15)
 root.bind('<F4>', delEntry)
 
-menuButton5 = ttk.Button(menuButtons, text='View All Database\n(F5)', bootstyle="warning-outline", command=viewAll, width=button_width)
+F5_Text= "View All Database"
+F5 = "(F5)"
+menuButton5 = ttk.Button(menuButtons, text=f"{F5_Text}\n{F5.center(30)}", bootstyle="warning-outline", command=viewAll, width=button_width)
 menuButton5.grid(row=0, column=4, padx=5, pady=10, ipady=15)
 root.bind('<F5>', viewAll)
 
-menuButton6 = ttk.Button(menuButtons, text='Search by Email\n(F6)', bootstyle="secondary-outline", command=searchByEmail, width=button_width)
+F6_Text= "Search by Email"
+F6 = "(F6)"
+menuButton6 = ttk.Button(menuButtons, text=f"{F6_Text.center(20)}\n{F6.center(30)}", bootstyle="secondary-outline", command=searchByEmail, width=button_width)
 menuButton6.grid(row=0, column=5, padx=5, pady=10, ipady=15)
 root.bind('<F6>', searchByEmail)
 
-menuButton7 = ttk.Button(menuButtons, text='Delete All Database\n(F7)', bootstyle="info-outline", command=delDatabase, width=button_width)
+F7_Text= "Delete All Database"
+F7 = "(F7)"
+menuButton7 = ttk.Button(menuButtons, text=f"{F7_Text}\n{F7.center(30)}", bootstyle="info-outline", command=delDatabase, width=button_width)
 menuButton7.grid(row=0, column=6, padx=5, pady=10, ipady=15)
 root.bind('<F7>', delDatabase)
 
-menuButton8 = ttk.Button(menuButtons, text='Help\n(F8)', bootstyle="dark-outline", command=helpDisplay, width=button_width)
+F8_Text= "Help"
+F8 = "(F8)"
+menuButton8 = ttk.Button(menuButtons, text=f"{F8_Text.center(27)}\n{F8.center(30)}", bootstyle="dark-outline", command=helpDisplay, width=button_width)
 menuButton8.grid(row=0, column=7, padx=5, pady=10, ipady=15)
 root.bind('<F8>', helpDisplay)
 
-menuButton9 = ttk.Button(menuButtons, text='Quit\n(F9)', bootstyle="danger", command=quit, width=button_width)
+F9_Text= "Quit"
+F9 = "(F9)"
+menuButton9 = ttk.Button(menuButtons, text=f"{F9_Text.center(27)}\n{F9.center(30)}", bootstyle="danger", command=quit, width=button_width)
 menuButton9.grid(row=0, column=8, padx=5, pady=10, ipady=15)
 root.bind('<F9>', quit)
 

@@ -7,6 +7,7 @@ import pm
 import threading
 import time
 import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 
 root = ttk.Window(themename="cosmo")
 window_width = 1280
@@ -111,9 +112,9 @@ def addCreds(*args): # Button 1
     note_Input.bind('<Return>', credsSubmit_func)            
     note_Input.place(relx=0.6, rely=0.5, anchor=CENTER, x=50)
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func) # -> credsSubmit_func()
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=credsSubmit_func, bootstyle=PRIMARY) # -> credsSubmit_func()
     credsSubmit.place(relx=0.5, rely=0.6, anchor=CENTER)
-    CreditCard = Button(displayFrame, text='Add Credit Card', height=2, width=25, command=credidCard) 
+    CreditCard = ttk.Button(displayFrame, text='Add Credit Card', width=25, command=credidCard, bootstyle=PRIMARY) 
     CreditCard.place(relx=0.5, rely=0.2, anchor=CENTER)
 
 def credidCard(*args):
@@ -169,7 +170,7 @@ def credidCard(*args):
     cvv_Input.bind('<Return>', newCreditCard)            
     cvv_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=newCreditCard)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=newCreditCard, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.5, anchor=CENTER)
 
 
@@ -262,7 +263,7 @@ def searchPassword(*args):
 
     header_Label = Label(displayFrame, text="Search Password", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
 
-    searchCreditCard_Button = Button(displayFrame, text="Search Credit Card", height=2, width=25, command=searchCreditCard)
+    searchCreditCard_Button = ttk.Button(displayFrame, text="Search Credit Card", width=25, command=searchCreditCard, bootstyle=PRIMARY)
     searchCreditCard_Button.place(relx=0.5, rely=0.2, anchor=CENTER)
 
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
@@ -352,7 +353,7 @@ def searchPassword(*args):
         
         
 
-    searchPassword_Submit = Button(displayFrame, text='Submit', height=2, width=25, command=searchPassword_func)
+    searchPassword_Submit = ttk.Button(displayFrame, text='Submit', width=25, command=searchPassword_func, bootstyle=PRIMARY)
     searchPassword_Submit.place(relx=0.5, rely=0.5, anchor=CENTER)    
 
     def validate_searhPassword(*args):        
@@ -468,7 +469,7 @@ def searchCreditCard():
         else:
             credsSubmit.config(state="disabled")
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=printCreditCard)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=printCreditCard, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
     masterPass_Input_Var.trace_add("write", validate_creditCard)
     card_name_Input_Var.trace_add("write", validate_creditCard)
@@ -598,7 +599,7 @@ def modifyPassword(*args): # 3 Modify Password Button
 
 
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=modifyPassword_Submit)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=modifyPassword_Submit, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.7, anchor=CENTER)    
 
     service_Input_Var.trace_add("write", validate_ModPsw)
@@ -675,9 +676,9 @@ def delEntry(*args): #4
             else:
                 messagebox.showinfo("Failed", "Wrong password. Cant't delete the entry.")
 
-    credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delPsw)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=delPsw, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.7, anchor=CENTER)        
-    CreditCard = Button(displayFrame, text='Delete a Credit Card', height=2, width=25, command=delcredidCard) 
+    CreditCard = ttk.Button(displayFrame, text='Delete a Credit Card', width=25, command=delcredidCard, bootstyle=PRIMARY) 
     CreditCard.place(relx=0.5, rely=0.2, anchor=CENTER)
 
     masterPass_Input_Var.trace_add("write", validate_delPsw)
@@ -738,7 +739,7 @@ def delcredidCard(*args):
                 credsSubmit.config(state="disabled")
 
 
-    credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delCredit)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=delCredit, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.5, anchor=CENTER)  
     masterPass_Input_Var.trace_add("write", validate_delCard)
     number_Input_Var.trace_add("write", validate_delCard)
@@ -767,17 +768,19 @@ def viewAll(*args):  # 5 View All Database
     loading_animation_label = None
 
     def loading_animation():
-        dots = ""
-        while not stop_animation.is_set():
-            dots += "."
-            if len(dots) > 5:
-                dots = ""
-            loading_animation_label.after(0, loading_animation_label.config, {"text": "Just a second" + dots})
-            time.sleep(0.5)
+        # dots = ""
+        # while not stop_animation.is_set():
+        #     dots += "."
+        #     if len(dots) > 5:
+        #         dots = ""
+        #     loading_animation_label.after(0, loading_animation_label.config, {"text": "Just a second" + dots})            
+        #     time.sleep(0.5)        
+        pass
 
     def stop_loading_animation():
-        stop_animation.set()
-        loading_animation_label.after(0, loading_animation_label.config, {"text": ""})
+        # stop_animation.set()
+        # loading_animation_label.after(0, loading_animation_label.config, {"text": ""})        
+        pass
 
     def printAll(*args):  # 5 Result Display (View All)
 
@@ -833,6 +836,10 @@ def viewAll(*args):  # 5 View All Database
         loading_animation_label = Label(scrollable_frame, text="Loading", font=('Helvetica 14 italic'))
         loading_animation_label.pack(pady=10)
 
+        progress_Bar = ttk.Floodgauge(scrollable_frame, bootstyle=INFO, font=(None, 24, 'bold'), mask='Searching..{}%', mode='indeterminate', max=10, length=865)
+        progress_Bar.pack(fill=X, expand=YES, padx=10, pady=10)        
+        progress_Bar.start()
+
         global stop_animation
         stop_animation = threading.Event()
 
@@ -841,9 +848,11 @@ def viewAll(*args):  # 5 View All Database
         popResult = masterPass_Input_Var.get()
 
         def run_pm_print_all():
-            result = pm.print_all(popResult)
+            result = pm.print_all(popResult)            
 
-            stop_loading_animation()
+            stop_loading_animation()            
+            loading_animation_label.forget()
+            progress_Bar.forget()
 
             if result:
                 for el in result:
@@ -872,7 +881,7 @@ def viewAll(*args):  # 5 View All Database
         else:
             credsSubmit.config(state="disabled")
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=printAll)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=printAll, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
 
     masterPass_Input_Var.trace_add("write", validate_viewAll)
@@ -988,7 +997,7 @@ def searchByEmail(*args): #6
 
            
 
-    credsSubmit = Button(displayFrame, text='Submit', height=2, width=25, command=credsSubmit_func)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=credsSubmit_func, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)
     masterPass_Input_Var.trace_add("write", validate_searchByEmail)
     email_Input_Var.trace_add("write", validate_searchByEmail)
@@ -1027,7 +1036,7 @@ def delDatabase(*args): #7
             else:
                 messagebox.showinfo("Failed", f"Error: Unable to delete database. Try again.")
             
-    credsSubmit = Button(displayFrame, text='Submit',height=2, width=25, command=delAll)
+    credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=delAll, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)        
     masterPass_Input_Var.trace_add("write", validate_delDatabase)
     validate_delDatabase()
@@ -1049,56 +1058,56 @@ menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80
 
 F1_Text= "Add New Credentials"
 F1 = "(F1)"
-menuButton1 = ttk.Button(menuButtons, text=f"{F1_Text}\n{F1.center(30)}", bootstyle="primary-outline", command=addCreds, width=button_width)
-menuButton1.grid(row=0, column=0, padx=5, pady=10, ipady=15)  # ipady aumenta l'altezza interna
+menuButton1 = ttk.Button(menuButtons, text=f"{F1_Text}\n{F1.center(33)}", bootstyle="primary-outline", command=addCreds, width=button_width)
+menuButton1.grid(row=0, column=0, padx=3, pady=10, ipady=13, ipadx=2)  # ipady aumenta l'altezza interna
 root.bind('<F1>', addCreds)
 
 F2_Text= "Search a Password"
 F2 = "(F2)"
 menuButton2 = ttk.Button(menuButtons, text=f"{F2_Text}\n{F2.center(30)}", bootstyle="success-outline", command=searchPassword, width=button_width)
-menuButton2.grid(row=0, column=1, padx=5, pady=10, ipady=15)
+menuButton2.grid(row=0, column=1, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F2>', searchPassword)
 
 F3_Text= "Modify a Password"
 F3 = "(F3)"
 menuButton3 = ttk.Button(menuButtons, text=f"{F3_Text}\n{F3.center(30)}", bootstyle="info-outline", command=modifyPassword, width=button_width)
-menuButton3.grid(row=0, column=2, padx=5, pady=10, ipady=15)
+menuButton3.grid(row=0, column=2, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F3>', modifyPassword)
 
 F4_Text= "Delete a Password"
 F4 = "(F4)"
 menuButton4 = ttk.Button(menuButtons, text=f"{F4_Text}\n{F4.center(30)}", bootstyle="danger-outline", command=delEntry, width=button_width)
-menuButton4.grid(row=0, column=3, padx=5, pady=10, ipady=15)
+menuButton4.grid(row=0, column=3, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F4>', delEntry)
 
 F5_Text= "View All Database"
 F5 = "(F5)"
 menuButton5 = ttk.Button(menuButtons, text=f"{F5_Text}\n{F5.center(30)}", bootstyle="warning-outline", command=viewAll, width=button_width)
-menuButton5.grid(row=0, column=4, padx=5, pady=10, ipady=15)
+menuButton5.grid(row=0, column=4, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F5>', viewAll)
 
 F6_Text= "Search by Email"
 F6 = "(F6)"
 menuButton6 = ttk.Button(menuButtons, text=f"{F6_Text.center(20)}\n{F6.center(30)}", bootstyle="secondary-outline", command=searchByEmail, width=button_width)
-menuButton6.grid(row=0, column=5, padx=5, pady=10, ipady=15)
+menuButton6.grid(row=0, column=5, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F6>', searchByEmail)
 
 F7_Text= "Delete All Database"
 F7 = "(F7)"
 menuButton7 = ttk.Button(menuButtons, text=f"{F7_Text}\n{F7.center(30)}", bootstyle="info-outline", command=delDatabase, width=button_width)
-menuButton7.grid(row=0, column=6, padx=5, pady=10, ipady=15)
+menuButton7.grid(row=0, column=6, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F7>', delDatabase)
 
 F8_Text= "Help"
 F8 = "(F8)"
 menuButton8 = ttk.Button(menuButtons, text=f"{F8_Text.center(27)}\n{F8.center(30)}", bootstyle="dark-outline", command=helpDisplay, width=button_width)
-menuButton8.grid(row=0, column=7, padx=5, pady=10, ipady=15)
+menuButton8.grid(row=0, column=7, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F8>', helpDisplay)
 
 F9_Text= "Quit"
 F9 = "(F9)"
 menuButton9 = ttk.Button(menuButtons, text=f"{F9_Text.center(27)}\n{F9.center(30)}", bootstyle="danger", command=quit, width=button_width)
-menuButton9.grid(row=0, column=8, padx=5, pady=10, ipady=15)
+menuButton9.grid(row=0, column=8, padx=3, pady=10, ipady=13, ipadx=2)
 root.bind('<F9>', quit)
 
 

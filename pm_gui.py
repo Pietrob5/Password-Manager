@@ -833,10 +833,10 @@ def viewAll(*args):  # 5 View All Database
 
         Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
 
-        loading_animation_label = Label(scrollable_frame, text="Loading", font=('Helvetica 14 italic'))
+        loading_animation_label = Label(scrollable_frame, text="", font=('Helvetica 14 italic'))
         loading_animation_label.pack(pady=10)
 
-        progress_Bar = ttk.Floodgauge(scrollable_frame, bootstyle=INFO, font=(None, 24, 'bold'), mask='Searching..{}%', mode='indeterminate', max=10, length=865)
+        progress_Bar = ttk.Floodgauge(scrollable_frame, bootstyle=INFO, font=(None, 24, 'bold'), mask='Searching...', mode='indeterminate', max=10, length=865)
         progress_Bar.pack(fill=X, expand=YES, padx=10, pady=10)        
         progress_Bar.start()
 
@@ -1117,7 +1117,7 @@ menuButtons.pack(fill=BOTH)
 # menuButtons.pack(fill=BOTH)
 
 #mainFrame
-frame1 = LabelFrame(root, text='Main Page', bg='silver', relief=SOLID, bd=3)
+frame1 = LabelFrame(root, text='Home Page', bg='silver', relief=SOLID, bd=3)
 frame1.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
 #DisplayFrame

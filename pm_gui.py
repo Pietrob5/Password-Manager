@@ -747,9 +747,6 @@ def delcredidCard(*args):
     validate_delCard()
 
 
-import threading
-import time
-
 def viewAll(*args):  # 5 View All Database
 
     defaultDisplay_Hide()        
@@ -831,7 +828,7 @@ def viewAll(*args):  # 5 View All Database
         canvas.bind_all("<Button-4>", on_mouse_wheel)
         canvas.bind_all("<Button-5>", on_mouse_wheel)
 
-        Label(scrollable_frame, text="Result", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
+        Label(scrollable_frame, text="Results", font=('Helvetica 17 bold'), anchor="center").pack(pady=10, fill=X, expand=True)
 
         loading_animation_label = Label(scrollable_frame, text="", font=('Helvetica 14 italic'))
         loading_animation_label.pack(pady=10)
@@ -854,7 +851,9 @@ def viewAll(*args):  # 5 View All Database
             loading_animation_label.forget()
             progress_Bar.forget()
 
-            if result:
+            if result[0][0] == "---":
+                Label(scrollable_frame, text="Database is empty!", anchor="center").pack(pady=10, fill=X)
+            elif result:
                 for el in result:
                     frame_row = Frame(scrollable_frame)
                     frame_row.pack(fill=X, pady=5)
@@ -868,6 +867,7 @@ def viewAll(*args):  # 5 View All Database
                         showDefaultDisplay()  
                     else:
                         Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
+            
             else:
                 Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
 
@@ -889,19 +889,19 @@ def viewAll(*args):  # 5 View All Database
 
 
 
-def searchByEmail(*args): #6
 
-    defaultDisplay_Hide()        
+def searchByEmail(*args):  # 6
 
-    global masterPass_Input_Var, email_Input_Var
+    defaultDisplay_Hide()
 
-    header_Label = Label(displayFrame, text="Search by Email", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
-
+    global masterPass_Input_Var, email_Input_Var, credsSubmit
     masterPass_Input_Var = StringVar()
     email_Input_Var = StringVar()
 
+    header_Label = Label(displayFrame, text="Search by Email", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)
+
     masterPass_Label = Label(displayFrame, text="Enter MASTER PASSWORD :")
-    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)    
+    masterPass_Label.place(relx=0.4, rely=0.2, anchor=CENTER, x=35)
 
     masterPass_Input = Entry(displayFrame, width=30, textvariable=masterPass_Input_Var, show='*')
     masterPass_Input.place(relx=0.6, rely=0.2, anchor=CENTER, x=-35)
@@ -913,31 +913,26 @@ def searchByEmail(*args): #6
     email_Input = Entry(displayFrame, width=30, textvariable=email_Input_Var)
     email_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=-35)
 
-    def validate_searchByEmail(*args):
-        master_password = masterPass_Input_Var.get().strip()
-        email = email_Input_Var.get().strip()
-        if master_password and email:
-            credsSubmit.config(state="normal")
+    loading_animation_label = None
 
-            masterPass_Label.bind('<Return>', credsSubmit_func)
-            masterPass_Input.bind('<Return>', credsSubmit_func)
-            email_Label.bind('<Return>', credsSubmit_func)
-            email_Input.bind('<Return>', credsSubmit_func)
-        else:
-            credsSubmit.config(state="disabled")
+    def loading_animation():
+        pass
+
+    def stop_loading_animation():
+        pass
 
     def credsSubmit_func(*args):
+        nonlocal loading_animation_label
+
         email = email_Input_Var.get()
         master_password = masterPass_Input_Var.get()
-
-        result = pm.find_by_mail(email.lower(), master_password)
 
         resultWindow = Toplevel(root)
         resultWindow.geometry("900x400")
         resultWindow.title("Search Results")
         try:
-            icon = PhotoImage(file = r'../Password-Manager/icon.png')
-            resultWindow.iconphoto(False,icon)
+            icon = PhotoImage(file=r'../Password-Manager/icon.png')
+            resultWindow.iconphoto(False, icon)
         except Exception as e:
             pass
 
@@ -977,25 +972,55 @@ def searchByEmail(*args): #6
         canvas.bind_all("<Button-4>", on_mouse_wheel)
         canvas.bind_all("<Button-5>", on_mouse_wheel)
 
-        if result:
-            for el in result:
-                frame_row = Frame(scrollable_frame)
-                frame_row.pack(fill=X, pady=5)
+        loading_animation_label = Label(scrollable_frame, text="", font=('Helvetica 14 italic'))
+        loading_animation_label.pack(pady=10)
 
-                label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
-                Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
+        progress_Bar = ttk.Floodgauge(scrollable_frame, bootstyle=INFO, font=(None, 24, 'bold'), mask='Searching...', mode='indeterminate', max=10, length=865)
+        progress_Bar.pack(fill=X, expand=YES, padx=10, pady=10)
+        progress_Bar.start()
 
-                if el[2] != "---":
-                    copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
-                    copy_button.pack(side=RIGHT, padx=10)
-                    showDefaultDisplay()
-                else:
-                    Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
+        global stop_animation
+        stop_animation = threading.Event()
+
+        threading.Thread(target=loading_animation, daemon=True).start()
+
+        def run_search():
+            result = pm.find_by_mail(email.lower(), master_password)
+
+            stop_loading_animation()
+            loading_animation_label.forget()
+            progress_Bar.forget()
+
+            if result:
+                for el in result:
+                    frame_row = Frame(scrollable_frame)
+                    frame_row.pack(fill=X, pady=5)
+
+                    label_text = f"Service: '{el[0]}', Email: '{el[1]}', Password: '{el[2]}', Note: {el[3]}"
+                    Label(frame_row, text=label_text, anchor="center").pack(side=LEFT, fill=X, expand=True)
+
+                    if el[2] != "---":
+                        copy_button = Button(frame_row, text="Copy Password", command=lambda psw=el[2]: pyperclip.copy(psw))
+                        copy_button.pack(side=RIGHT, padx=10)
+                        showDefaultDisplay()
+                    else:
+                        Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
+            else:
+                Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+
+        threading.Thread(target=run_search, daemon=True).start()
+
+    def validate_searchByEmail(*args):
+        master_password = masterPass_Input_Var.get().strip()
+        email = email_Input_Var.get().strip()
+        if master_password and email:
+            credsSubmit.config(state="normal")
+            masterPass_Label.bind('<Return>', credsSubmit_func)
+            masterPass_Input.bind('<Return>', credsSubmit_func)
+            email_Label.bind('<Return>', credsSubmit_func)
+            email_Input.bind('<Return>', credsSubmit_func)
         else:
-            Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
-
-
-           
+            credsSubmit.config(state="disabled")
 
     credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=credsSubmit_func, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.4, anchor=CENTER)

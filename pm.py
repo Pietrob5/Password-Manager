@@ -1,4 +1,3 @@
-
 import sqlite3 
 import bcrypt # type: ignore
 from cryptography.fernet import Fernet # type: ignore
@@ -9,7 +8,7 @@ import getpass
 import re
 import string
 import secrets
-# import hashlib
+import hashlib
 
 
 # def hash_master_password(master_password):
@@ -20,11 +19,18 @@ import secrets
 #     key = bcrypt.kdf(password_hash, salt, 32, 100)
 #     return base64.urlsafe_b64encode(key)
 
-# Funzione per generare una chiave di cifratura basata sulla MASTER PASSWORD
+
 def generate_key(password, salt):
-    password = password.encode()  # Converte la password in bytes
-    key = bcrypt.kdf(password, salt, 32, 100)
+    password = password.encode()
+    key = hashlib.pbkdf2_hmac('sha256', password, salt, 100000, dklen=32)  #100000 iterations - 32bytes = 256bti
     return base64.urlsafe_b64encode(key)
+
+
+# Funzione per generare una chiave di cifratura basata sulla MASTER PASSWORD
+# def generate_key(password, salt):
+#     password = password.encode()  # Converte la password in bytes
+#     key = bcrypt.kdf(password, salt, 32, 1000)
+#     return base64.urlsafe_b64encode(key)
 
 def create_db():
     conn = sqlite3.connect('passwords.db')
@@ -328,7 +334,7 @@ def print_all(master_password):
     conn.close()
     if len(rows) == 0:
         print("Database is empty.\n")
-        return []
+        return [("---", "---", "---", "---")]
     list = []
     for row in rows:
         service, email, encrypted_password, note, salt = row
@@ -350,6 +356,7 @@ def print_all(master_password):
 def delete_all(master_password):
     conn = sqlite3.connect('passwords.db')
     c = conn.cursor()
+    
     c.execute("SELECT service, email, encrypted_password, salt FROM passwords")
     rows = c.fetchall()
 
@@ -364,7 +371,23 @@ def delete_all(master_password):
             conn.close()
             return 0
     
+    c.execute("SELECT name, number, salt FROM creditCard")
+    rows = c.fetchall()
+
+    for row in rows:
+        name, encrypted_number, salt = row
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            cipher_suite.decrypt(encrypted_number).decode()
+        except Exception as e:
+            conn.close()
+            return 0
+
     c.execute("DELETE FROM passwords")
+    c.execute("DELETE FROM creditCard")
+    
     conn.commit()
     conn.close()
     return 1
@@ -694,3 +717,5 @@ if __name__ == "__main__":
             # print("#########################################################\n")
     except EOFError:
         signal_handler(signal.SIGINT, None)
+
+

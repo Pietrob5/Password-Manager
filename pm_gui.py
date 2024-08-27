@@ -10,7 +10,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
 root = ttk.Window(themename="cosmo")
-window_width = 1280
+window_width = 1400
 window_height = 720
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
@@ -19,7 +19,7 @@ x_cordinate = int((screen_width/2) - (window_width/2))
 y_cordinate = int((screen_height/2) - (window_height/2))
 
 root.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
-root.minsize(1150, 500)
+root.minsize(1280, 500)
 root.title("Password Manager by Stevees")
 try:
     icon = PhotoImage(file=r'../Password-Manager/icon.png')
@@ -332,7 +332,12 @@ def searchPassword(*args):
         if email:
             for el in email:
                 psw = pm.get_password(service.lower(), el.lower(), masterPass_Input_Var.get())
-                note = pm.get_note(service, el)[0]
+                note = pm.get_note(service, el)
+                if note:
+                    note = note[0]
+                else:
+                    note = ""
+
                 if psw:
                     frame_for_result = Frame(scrollable_frame)
                     frame_for_result.pack(pady=5, fill=X)
@@ -456,7 +461,7 @@ def searchCreditCard():
                 else:
                     Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
         else:
-            Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+            Label(scrollable_frame, text="No results found or incorrect Master Password.", anchor="center").pack(pady=10, fill=X)
 
 
 
@@ -535,13 +540,19 @@ def modifyPassword(*args): # 3 Modify Password Button
     new_email_Input = Entry(displayFrame, width=30, textvariable=new_email_Input_Var)
     new_email_Input.place(relx=0.6, rely=0.3, anchor=CENTER, x=50)
 
+    def suggest_password():
+        strong_password = pm.generate_password()
+        new_password_Input_Var.set(strong_password)
+
     new_password_Input_Var = StringVar()
     new_password = new_password_Input_Var.get()
-    
     new_Password_Label = Label(displayFrame, text="New Password :")
     new_Password_Label.place(relx=0.5, rely=0.4, anchor=CENTER, x=34)
     new_Password_Input = Entry(displayFrame, width=30, textvariable=new_password_Input_Var)
     new_Password_Input.place(relx=0.6, rely=0.4, anchor=CENTER, x=50)
+    suggestPassword_Button = Button(displayFrame, text="Suggest Strong Password", command=suggest_password)
+    suggestPassword_Button.place(relx=0.75, rely=0.4, anchor=CENTER, x=50)        
+
 
     new_note_Input_Var = StringVar()
     new_note = new_note_Input_Var.get()
@@ -1006,7 +1017,7 @@ def searchByEmail(*args):  # 6
                     else:
                         Label(frame_row, text="Decryption Error", fg="red", anchor="center").pack(side=RIGHT, padx=10)
             else:
-                Label(scrollable_frame, text="No results found or incorrect master password.", anchor="center").pack(pady=10, fill=X)
+                Label(scrollable_frame, text="No results found or incorrect Master Password.", anchor="center").pack(pady=10, fill=X)
 
         threading.Thread(target=run_search, daemon=True).start()
 
@@ -1067,9 +1078,10 @@ def delDatabase(*args): #7
     validate_delDatabase()
 
 def helpDisplay(*args):  # Button 8
-    defaultDisplay_Hide()       
-    defaultDisplay = Label(displayFrame,bg='silver', text=helpText,bd=4,font="helvatica", wraplength=900, padx=10, pady=10)
-    defaultDisplay.pack(expand=True, fill=BOTH, padx=5, pady=5)
+        defaultDisplay_Hide()       
+        defaultDisplay = Label(displayFrame,bg='silver', text=helpText,bd=4,font="helvatica", wraplength=900, padx=10, pady=10)
+        defaultDisplay.pack(expand=True, fill=BOTH, padx=5, pady=5)
+
 
 def quit(*args): #9
     sys.exit(0)
@@ -1138,24 +1150,50 @@ root.bind('<F9>', quit)
 
 
 menuButtons.pack(fill=BOTH)
+def submit_login():
+    username = username_var.get()
+    master_password = master_password_var.get()
 
+    if username and master_password:
+
+        loginFrame.pack_forget()
+        loginFrame.destroy() 
+    else:
+        error_label.config(text="Please fill in both fields!", fg="red")
 # menuButtons.pack(fill=BOTH)
 
 #mainFrame
 frame1 = LabelFrame(root, text='Home Page', bg='silver', relief=SOLID, bd=3)
 frame1.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
-#DisplayFrame
 displayFrame = LabelFrame(frame1, text='', relief=FLAT, bd=3)
 displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
 
 helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."'\n''\n'"PROJECT LINK : github.com/Pietrob5/Password-Manager"
+username_var = StringVar()
+master_password_var = StringVar()
+
+loginFrame = Frame(root, relief='ridge', borderwidth=1, bg='gray80')
+Label(loginFrame, text='Username:').pack(pady=5)
+username_entry = ttk.Entry(loginFrame, textvariable=username_var)
+username_entry.pack(pady=5, padx=20)
+
+Label(loginFrame, text='Master Password:').pack(pady=5)
+password_entry = ttk.Entry(loginFrame, textvariable=master_password_var, show="*")
+password_entry.pack(pady=5, padx=20)
+
+error_label = Label(loginFrame, text='', bg='gray80')
+error_label.pack(pady=5)
+
+submit_button = ttk.Button(loginFrame, text="Submit", command=submit_login)
+submit_button.pack(pady=10)
+
+loginFrame.pack(expand=True)
 
 defaultDisplay = Label(displayFrame, bg='silver', text=
-"Password Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
+"\nPassword Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
 bd=4,font="helvatica", wraplength=900, padx=10, pady=10)
 defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
-
 
 root.mainloop()

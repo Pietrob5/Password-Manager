@@ -1179,7 +1179,7 @@ defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
 def loginWindow():
     resultWindow = Toplevel(root)
     resultWindow.geometry("900x400")
-    resultWindow.title("Search Results")    
+    resultWindow.title("LOGIN")    
 
     window_width = 900
     window_height = 400

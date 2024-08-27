@@ -1089,78 +1089,75 @@ def quit(*args): #9
 pm.create_db()
 
 #menu icons / buttons
-button_width = 18
+#previous value = 15
+button_width = 20
 
 menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
 
 F1_Text= "Add New Credentials"
 F1 = "(F1)"
 menuButton1 = ttk.Button(menuButtons, text=f"{F1_Text}\n{F1.center(33)}", bootstyle="primary-outline", command=addCreds, width=button_width)
-menuButton1.grid(row=0, column=0, padx=3, pady=10, ipady=13, ipadx=2)  # ipady aumenta l'altezza interna
+menuButton1.grid(row=0, column=0, padx=3, pady=10, ipady=10, ipadx=2)  # ipady aumenta l'altezza interna
 root.bind('<F1>', addCreds)
+menuButton1.configure(state=DISABLED)
 
 F2_Text= "Search a Password"
 F2 = "(F2)"
 menuButton2 = ttk.Button(menuButtons, text=f"{F2_Text}\n{F2.center(30)}", bootstyle="success-outline", command=searchPassword, width=button_width)
-menuButton2.grid(row=0, column=1, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton2.grid(row=0, column=1, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F2>', searchPassword)
+menuButton2.configure(state=DISABLED)
 
 F3_Text= "Modify a Password"
 F3 = "(F3)"
 menuButton3 = ttk.Button(menuButtons, text=f"{F3_Text}\n{F3.center(30)}", bootstyle="info-outline", command=modifyPassword, width=button_width)
-menuButton3.grid(row=0, column=2, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton3.grid(row=0, column=2, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F3>', modifyPassword)
+menuButton3.configure(state=DISABLED)
 
 F4_Text= "Delete a Password"
 F4 = "(F4)"
 menuButton4 = ttk.Button(menuButtons, text=f"{F4_Text}\n{F4.center(30)}", bootstyle="danger-outline", command=delEntry, width=button_width)
-menuButton4.grid(row=0, column=3, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton4.grid(row=0, column=3, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F4>', delEntry)
+menuButton4.configure(state=DISABLED)
 
 F5_Text= "View All Database"
 F5 = "(F5)"
 menuButton5 = ttk.Button(menuButtons, text=f"{F5_Text}\n{F5.center(30)}", bootstyle="warning-outline", command=viewAll, width=button_width)
-menuButton5.grid(row=0, column=4, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton5.grid(row=0, column=4, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F5>', viewAll)
+menuButton5.configure(state=DISABLED)
 
 F6_Text= "Search by Email"
 F6 = "(F6)"
 menuButton6 = ttk.Button(menuButtons, text=f"{F6_Text.center(20)}\n{F6.center(30)}", bootstyle="secondary-outline", command=searchByEmail, width=button_width)
-menuButton6.grid(row=0, column=5, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton6.grid(row=0, column=5, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F6>', searchByEmail)
+menuButton6.configure(state=DISABLED)
 
 F7_Text= "Delete All Database"
 F7 = "(F7)"
 menuButton7 = ttk.Button(menuButtons, text=f"{F7_Text}\n{F7.center(30)}", bootstyle="info-outline", command=delDatabase, width=button_width)
-menuButton7.grid(row=0, column=6, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton7.grid(row=0, column=6, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F7>', delDatabase)
+menuButton7.configure(state=DISABLED)
 
 F8_Text= "Help"
 F8 = "(F8)"
 menuButton8 = ttk.Button(menuButtons, text=f"{F8_Text.center(27)}\n{F8.center(30)}", bootstyle="dark-outline", command=helpDisplay, width=button_width)
-menuButton8.grid(row=0, column=7, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton8.grid(row=0, column=7, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F8>', helpDisplay)
+menuButton8.configure(state=DISABLED)
 
 F9_Text= "Quit"
 F9 = "(F9)"
 menuButton9 = ttk.Button(menuButtons, text=f"{F9_Text.center(27)}\n{F9.center(30)}", bootstyle="danger", command=quit, width=button_width)
-menuButton9.grid(row=0, column=8, padx=3, pady=10, ipady=13, ipadx=2)
+menuButton9.grid(row=0, column=8, padx=3, pady=10, ipady=10, ipadx=2)
 root.bind('<F9>', quit)
-
-
+menuButton9.configure(state=DISABLED)
 
 menuButtons.pack(fill=BOTH)
-def submit_login():
-    username = username_var.get()
-    master_password = master_password_var.get()
-
-    if username and master_password:
-
-        loginFrame.pack_forget()
-        loginFrame.destroy() 
-    else:
-        error_label.config(text="Please fill in both fields!", fg="red")
-# menuButtons.pack(fill=BOTH)
 
 #mainFrame
 frame1 = LabelFrame(root, text='Home Page', bg='silver', relief=SOLID, bd=3)
@@ -1171,29 +1168,92 @@ displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
 
 helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."'\n''\n'"PROJECT LINK : github.com/Pietrob5/Password-Manager"
-username_var = StringVar()
-master_password_var = StringVar()
-
-loginFrame = Frame(root, relief='ridge', borderwidth=1, bg='gray80')
-Label(loginFrame, text='Username:').pack(pady=5)
-username_entry = ttk.Entry(loginFrame, textvariable=username_var)
-username_entry.pack(pady=5, padx=20)
-
-Label(loginFrame, text='Master Password:').pack(pady=5)
-password_entry = ttk.Entry(loginFrame, textvariable=master_password_var, show="*")
-password_entry.pack(pady=5, padx=20)
-
-error_label = Label(loginFrame, text='', bg='gray80')
-error_label.pack(pady=5)
-
-submit_button = ttk.Button(loginFrame, text="Submit", command=submit_login)
-submit_button.pack(pady=10)
-
-loginFrame.pack(expand=True)
 
 defaultDisplay = Label(displayFrame, bg='silver', text=
 "\nPassword Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
 bd=4,font="helvatica", wraplength=900, padx=10, pady=10)
 defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
+
+
+# LOGIN
+def loginWindow():
+    resultWindow = Toplevel(root)
+    resultWindow.geometry("900x400")
+    resultWindow.title("LOGIN")    
+
+    window_width = 900
+    window_height = 400
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x_cordinate = int((screen_width / 2) - (window_width / 2))
+    y_cordinate = int((screen_height / 2) - (window_height / 2))
+    resultWindow.geometry(f"{window_width}x{window_height}+{x_cordinate}+{y_cordinate}")
+    resultWindow.grab_set()
+    
+    loginFrame = Frame(resultWindow)
+    loginFrame.pack(fill=BOTH, expand=True)
+
+    #login exit
+    def login_exit():
+        
+        root.destroy()
+        
+        #Un-comment if prefer ask box (i would suggest direct close)
+        
+        # close = messagebox.askyesno("Exit?", "Are you sure you want to exit?")
+        # if close:
+        #     root.destroy()
+
+    resultWindow.protocol("WM_DELETE_WINDOW", login_exit)
+
+    # LOGIN Logic
+    def submit_login(*args):      
+
+        #logic
+            # if:
+
+            # else:
+
+        #keep these buttons and .destroy() at last if success.
+        menuButton1.configure(state=NORMAL)
+        menuButton2.configure(state=NORMAL)
+        menuButton3.configure(state=NORMAL)
+        menuButton4.configure(state=NORMAL)
+        menuButton5.configure(state=NORMAL)
+        menuButton6.configure(state=NORMAL)
+        menuButton7.configure(state=NORMAL)
+        menuButton8.configure(state=NORMAL)
+        menuButton9.configure(state=NORMAL)
+        loginFrame.destroy()     
+        resultWindow.destroy()
+
+
+    username_var = StringVar()
+    master_password_var = StringVar()
+
+    username_Label = Label(loginFrame, text='Username :')
+    username_Label.place(anchor=CENTER, relx=0.4, rely=0.2, x=17)
+
+    username_entry = ttk.Entry(loginFrame, textvariable=username_var)
+    username_entry.place(anchor=CENTER, relx=0.5, rely=0.2, x=50, width=150)
+    username_entry.focus()
+
+    loginPassword_Label = Label(loginFrame, text='Master Password :')
+    loginPassword_Label.place(anchor=CENTER, relx=0.4, rely=0.3)
+
+    password_entry = ttk.Entry(loginFrame, textvariable=master_password_var, show="*")
+    password_entry.place(anchor=CENTER, relx=0.5, rely=0.3, x=50, width=150)
+
+    submit_Login_button = ttk.Button(loginFrame, text="Submit", command=submit_login, width=25)
+    submit_Login_button.place(anchor=CENTER, relx=0.5, rely=0.4)
+
+    register_button = ttk.Button(loginFrame, text="Register", command=submit_login, width=25)
+    register_button.place(anchor=CENTER, relx=0.5, rely=0.5)
+    register_button.bind('<Return>', submit_login)
+
+
+
+#Login Trigger
+root.after(1, loginWindow)
 
 root.mainloop()

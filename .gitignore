@@ -1,4 +1,5 @@
 passwords.db
 __pycache__/
 icon1.png
-chiavi.py
+my_pm_gui.py
+.env

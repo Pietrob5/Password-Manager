@@ -1086,7 +1086,7 @@ def helpDisplay(*args):  # Button 8
 def quit(*args): #9
     sys.exit(0)
 
-pm.create_db()
+# pm.create_db()
 
 #menu icons / buttons
 #previous value = 15
@@ -1193,62 +1193,98 @@ def loginWindow():
     loginFrame = Frame(resultWindow)
     loginFrame.pack(fill=BOTH, expand=True)
 
+    error_label = Label(loginFrame, text='', bg='gray80')
+    error_label.pack(pady=5)
+
     #login exit
     def login_exit():
         
         root.destroy()
-        
-        #Un-comment if prefer ask box (i would suggest direct close)
-        
-        # close = messagebox.askyesno("Exit?", "Are you sure you want to exit?")
-        # if close:
-        #     root.destroy()
+
 
     resultWindow.protocol("WM_DELETE_WINDOW", login_exit)
 
     # LOGIN Logic
-    def submit_login(*args):      
+    def submit_signup():
+        username = username_var.get()
+        master_password = master_password_var.get()
 
-        #logic
-            # if:
+        if username and master_password:
+            pm.create_users_table()
+            ret, db_name = pm.add_user_to_users_table(username, master_password)
+            if ret == 1:
+                pm.initialize_db(db_name) #initialize database for the user username. This has to be done only the first time he sings up
+                menuButton1.configure(state=NORMAL)
+                menuButton2.configure(state=NORMAL)
+                menuButton3.configure(state=NORMAL)
+                menuButton4.configure(state=NORMAL)
+                menuButton5.configure(state=NORMAL)
+                menuButton6.configure(state=NORMAL)
+                menuButton7.configure(state=NORMAL)
+                menuButton8.configure(state=NORMAL)
+                menuButton9.configure(state=NORMAL)
+                loginFrame.destroy()     
+                resultWindow.destroy()
+            elif ret == 2:
+                error_label.config(text="User already exists. Login!", fg="red")
+            elif ret == 0:
+                error_label.config(text="Error. Try Again!", fg="red")
+        
+        else:
+            error_label.config(text="Please fill in both fields!", fg="red")
+        
 
-            # else:
+    def submit_login():
+        username = username_var.get()
+        master_password = master_password_var.get()
 
-        #keep these buttons and .destroy() at last if success.
-        menuButton1.configure(state=NORMAL)
-        menuButton2.configure(state=NORMAL)
-        menuButton3.configure(state=NORMAL)
-        menuButton4.configure(state=NORMAL)
-        menuButton5.configure(state=NORMAL)
-        menuButton6.configure(state=NORMAL)
-        menuButton7.configure(state=NORMAL)
-        menuButton8.configure(state=NORMAL)
-        menuButton9.configure(state=NORMAL)
-        loginFrame.destroy()     
-        resultWindow.destroy()
+        if username and master_password:
+
+            db_name = pm.get_db_name(username, master_password)
+            if db_name == None:
+                error_label.config(text="User not found. Register first!", fg="red")
+            elif db_name == "mp":
+                error_label.config(text="Wrong Master Password!", fg="red")
+            else:
+                pm.connect_existing_db(db_name)
+                menuButton1.configure(state=NORMAL)
+                menuButton2.configure(state=NORMAL)
+                menuButton3.configure(state=NORMAL)
+                menuButton4.configure(state=NORMAL)
+                menuButton5.configure(state=NORMAL)
+                menuButton6.configure(state=NORMAL)
+                menuButton7.configure(state=NORMAL)
+                menuButton8.configure(state=NORMAL)
+                menuButton9.configure(state=NORMAL)
+                loginFrame.destroy()     
+                resultWindow.destroy()
+        else:
+            error_label.config(text="Please fill in both fields!", fg="red")
+
+
 
 
     username_var = StringVar()
     master_password_var = StringVar()
 
     username_Label = Label(loginFrame, text='Username :')
-    username_Label.place(anchor=CENTER, relx=0.4, rely=0.2, x=17)
+    username_Label.place(anchor=CENTER, relx=0.35, rely=0.2, x=17)
 
     username_entry = ttk.Entry(loginFrame, textvariable=username_var)
-    username_entry.place(anchor=CENTER, relx=0.5, rely=0.2, x=50, width=150)
+    username_entry.place(anchor=CENTER, relx=0.45, rely=0.2, x=50, width=150)
     username_entry.focus()
 
     loginPassword_Label = Label(loginFrame, text='Master Password :')
-    loginPassword_Label.place(anchor=CENTER, relx=0.4, rely=0.3)
+    loginPassword_Label.place(anchor=CENTER, relx=0.35, rely=0.3)
 
     password_entry = ttk.Entry(loginFrame, textvariable=master_password_var, show="*")
-    password_entry.place(anchor=CENTER, relx=0.5, rely=0.3, x=50, width=150)
+    password_entry.place(anchor=CENTER, relx=0.45, rely=0.3, x=50, width=150)
 
-    submit_Login_button = ttk.Button(loginFrame, text="Submit", command=submit_login, width=25)
-    submit_Login_button.place(anchor=CENTER, relx=0.5, rely=0.4)
+    submit_Login_button = ttk.Button(loginFrame, text="Login", command=submit_login, width=25)
+    submit_Login_button.place(anchor=CENTER, relx=0.5, rely=0.5)
 
-    register_button = ttk.Button(loginFrame, text="Register", command=submit_login, width=25)
-    register_button.place(anchor=CENTER, relx=0.5, rely=0.5)
+    register_button = ttk.Button(loginFrame, text="Register", command=submit_signup, width=25)
+    register_button.place(anchor=CENTER, relx=0.5, rely=0.6)
     register_button.bind('<Return>', submit_login)
 
 

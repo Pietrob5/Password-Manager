@@ -3,41 +3,99 @@ import bcrypt # type: ignore
 from cryptography.fernet import Fernet # type: ignore
 import base64
 import sys
-import signal
-import getpass
 import re
 import string
+import random
 import secrets
 import hashlib
 import pymysql
-import chiavi
+import os
+from dotenv import load_dotenv
+import mysql.connector
+from mysql.connector import errorcode
+
+database_name = None
+load_dotenv(dotenv_path='.env')  
 
 
+#connect, initialize and setup database
 
 def generate_key(password, salt):
     password = password.encode()
-    key = hashlib.pbkdf2_hmac('sha256', password, salt, 100000, dklen=32)  #100000 iterations, 32bytes = 256bti
+    key = hashlib.pbkdf2_hmac('sha256', password, salt, 100000, dklen=32)  #100000 iterations, 32bytes = 256bit
     return base64.urlsafe_b64encode(key)
 
+def initialize_db(db_name):
+    global database_name
+
+    config = {
+        'host': os.getenv('HOST'),
+        'user': os.getenv('USER'),
+        'password': os.getenv('PSW'),
+        'port': int(os.getenv('PORT'))
+    }
+
+    database_name = db_name
+
+    try:
+        conn = mysql.connector.connect(**config)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {database_name}")
+        except mysql.connector.Error as err:
+            print(f"Errore nella creazione del database '{database_name}': {err}")
+        
+        cursor.close()
+        conn.close()
+
+        config['database'] = database_name
+        conn = mysql.connector.connect(**config)
+        # print(f"Connesso al database '{database_name}' con successo.")
+        
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Errore di autenticazione")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Il database non esiste")
+        else:
+            print(err)
+
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            conn.close()
+            # print("Connessione chiusa.")
+    
+    create_db()
+
+
+def connect_existing_db(dbname):    #call this after login
+    global database_name #sets database_name to be used to create connection
+    database_name = dbname
+    
+    create_db()
 
 def create_connection():
+    global database_name
     timeout = 15
     connection = pymysql.connect(
-    charset="utf8mb4",
-    connect_timeout=timeout,
-    cursorclass=pymysql.cursors.DictCursor,
-    db=chiavi.DB,
-    host=chiavi.HOST,
-    password=chiavi.PSW,
-    read_timeout=timeout,
-    port=chiavi.PORT,
-    user=chiavi.USER,
-    write_timeout=timeout,
-)
+        charset="utf8mb4",
+        connect_timeout=timeout,
+        cursorclass=pymysql.cursors.DictCursor,
+        db=database_name,
+        host=os.getenv('HOST'),
+        password=os.getenv('PSW'),
+        read_timeout=timeout,
+        port=int(os.getenv('PORT')),
+        user=os.getenv('USER'),
+        write_timeout=timeout,
+    )
     return connection
 
 
+
 def create_db():
+    global database_name
     conn = create_connection()
     c = conn.cursor()
     
@@ -64,6 +122,124 @@ def create_db():
     conn.commit()
     conn.close()
 
+
+
+
+def create_users_db_connection():
+    timeout = 15
+    connection = pymysql.connect(
+        charset="utf8mb4",
+        connect_timeout=timeout,
+        cursorclass=pymysql.cursors.DictCursor,
+        db="Users",
+        host=os.getenv('HOST'),
+        password=os.getenv('PSW'),
+        read_timeout=timeout,
+        port=int(os.getenv('PORT')),
+        user=os.getenv('USER'),
+        write_timeout=timeout,
+    )
+    return connection
+
+
+def create_users_table():
+
+    conn = create_users_db_connection()
+    try:
+        with conn.cursor() as c:
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(255) NOT NULL,
+                    db_name BLOB NOT NULL,
+                    salt BLOB NOT NULL,
+                    UNIQUE KEY unique_username (username)
+                )
+            ''')
+        conn.commit()
+    finally:
+        conn.close()
+
+def generate_db_name(lenght=15):
+
+  chars = string.ascii_letters + "_"
+
+  db_name = ''.join(random.choice(chars) for _ in range(lenght))
+
+  return db_name
+
+def add_user_to_users_table(username, master_password):
+
+    db_name = generate_db_name()
+
+    salt = bcrypt.gensalt()
+    key = generate_key(master_password, salt)
+    cipher_suite = Fernet(key)
+    
+    encrypted_db_name = cipher_suite.encrypt(db_name.encode())
+
+    conn = create_users_db_connection()
+    try:
+        with conn.cursor() as c:
+            c.execute('SELECT COUNT(*) FROM users WHERE username = %s', (username,))
+            result = c.fetchone()
+            if result['COUNT(*)'] > 0:
+                print(f"Errore: Username '{username}' già presente.")
+                return 2, "error"
+
+            c.execute('''
+                INSERT INTO users (username, db_name, salt)
+                VALUES (%s, %s, %s)
+            ''', (username, encrypted_db_name, salt))
+        
+        conn.commit()
+        # print(f"Utente '{username}' aggiunto con successo alla tabella 'users'.")
+    except pymysql.IntegrityError as e:
+        # print(f"Errore: Impossibile aggiungere l'utente '{username}'.")
+        return 0, "error"
+    finally:
+        conn.close()
+
+    return 1, db_name
+
+
+
+def get_db_name(username, master_password):
+    conn = create_users_db_connection()
+    try:
+        with conn.cursor() as c:
+            c.execute('SELECT db_name, salt FROM users WHERE username = %s', (username,))
+            result = c.fetchone()
+
+            if result is None:
+                print(f"Errore: Username '{username}' non trovato.")
+                return None
+
+            encrypted_db_name = result['db_name']
+            salt = result['salt']
+
+            key = generate_key(master_password, salt)
+            cipher_suite = Fernet(key)
+
+            try:
+                decrypted_db_name = cipher_suite.decrypt(encrypted_db_name).decode()
+                return decrypted_db_name
+            except Exception as e:
+                print(f"Errore: Impossibile decriptare il nome del database per lo username '{username}'. Master password errata.")
+                return "mp"
+
+    finally:
+        conn.close()
+
+
+
+
+
+
+
+
+
+#interact with database
 
 def generate_password():
     while True:
@@ -107,29 +283,6 @@ def add_password(service, email, password, note, master_password):
     
     conn.close()
     return 1
-
-
-# def add_credit_card(name, number, expiry, cvv, master_password):
-#     try:
-#         salt = bcrypt.gensalt()
-#         key = generate_key(master_password, salt)
-#         cipher_suite = Fernet(key)
-#         encrypted_number = cipher_suite.encrypt(number.encode())
-#         encrypted_expiry = cipher_suite.encrypt(expiry.encode())
-#         encrypted_cvv = cipher_suite.encrypt(cvv.encode())
-
-#         conn = create_connection()
-#         c = conn.cursor()
-
-#         c.execute("INSERT INTO creditCard (name, number, expiryDate, cvv, salt) VALUES (?, ?, ?, ?, ?)",
-#                   (name, encrypted_number, encrypted_expiry, encrypted_cvv, salt))
-#         conn.commit()
-#     except sqlite3.IntegrityError as e:
-#         # print(f"Error: Unable to add Credit Card.")
-#         conn.close()
-#         return 0   
-#     conn.close()
-#     return 1
 
 
 def add_credit_card(name, number, expiry, cvv, master_password):

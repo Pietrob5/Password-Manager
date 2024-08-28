@@ -1,9 +1,431 @@
-
+import sqlite3 
+import bcrypt # type: ignore
+from cryptography.fernet import Fernet # type: ignore
+import base64
 import sys
 import signal
 import getpass
+import re
+import string
+import secrets
+import hashlib
 
-from pm import add_password, create_db, signal_handler, delete_all, remove_entry, get_mails, get_note, get_password, modify_entry, print_all, find_by_mail
+
+# def hash_master_password(master_password):
+#     return hashlib.sha256(master_password.encode()).digest()
+
+# def generate_key(password, salt):
+#     password_hash = hash_master_password(password)
+#     key = bcrypt.kdf(password_hash, salt, 32, 100)
+#     return base64.urlsafe_b64encode(key)
+
+
+def generate_key(password, salt):
+    password = password.encode()
+    key = hashlib.pbkdf2_hmac('sha256', password, salt, 100000, dklen=32)  #100000 iterations - 32bytes = 256bti
+    return base64.urlsafe_b64encode(key)
+
+
+# Funzione per generare una chiave di cifratura basata sulla MASTER PASSWORD
+# def generate_key(password, salt):
+#     password = password.encode()  # Converte la password in bytes
+#     key = bcrypt.kdf(password, salt, 32, 1000)
+#     return base64.urlsafe_b64encode(key)
+
+def create_db():
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS creditCard (id INTEGER PRIMARY KEY, name TEXT not null, number TEXT not null unique, expiryDate BLOB not null, cvv TEXT, salt BLOB not null)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS passwords (id INTEGER PRIMARY KEY, service TEXT not null, email TEXT not null, encrypted_password BLOB not null, note TEXT, salt BLOB not null, CONSTRAINT un1 UNIQUE (service, email))''')
+    conn.commit()
+    conn.close()
+
+# def password_exists(service, email):
+#     conn = sqlite3.connect('passwords.db')
+#     c = conn.cursor()
+#     c.execute("SELECT COUNT(*) FROM passwords WHERE service = ? AND email = ?", (service, email))
+#     count = c.fetchone()[0]
+#     conn.close()
+#     return count > 0
+
+def generate_password():
+    while True:
+        alphabet = string.ascii_letters + string.digits + "!@#$%^&*()_+{}:;<>,.?/~"
+        
+        password = [
+            secrets.choice(string.ascii_uppercase),
+            secrets.choice(string.ascii_lowercase),
+            secrets.choice(string.digits),
+            secrets.choice("!@#$%^&*()_+{}:;<>,.?/~")
+        ]
+        #12 char
+        password += [secrets.choice(alphabet) for _ in range(14)]
+        #shuffle order
+        secrets.SystemRandom().shuffle(password)
+        password = ''.join(password)
+        pattern = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:;<>,.?/~])[A-Za-z\d!@#$%^&*()_+{}:;<>,.?/~]{10,}$'
+        if re.match(pattern, password):
+            return password
+
+def add_password(service, email, password, note, master_password):
+    try:
+        salt = bcrypt.gensalt()
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        encrypted_password = cipher_suite.encrypt(password.encode())
+
+        conn = sqlite3.connect('passwords.db')
+        c = conn.cursor()
+
+        c.execute("INSERT INTO passwords (service, email, encrypted_password, note, salt) VALUES (?, ?, ?, ?, ?)",
+                  (service, email, encrypted_password, note, salt))
+        conn.commit()
+        print("Password added successfully.")
+
+    except sqlite3.IntegrityError as e:
+        print(f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
+        conn.close()
+        return 0
+
+    
+    conn.close()
+    return 1
+
+
+# def add_credit_card(name, number, expiry, cvv, master_password):
+#     try:
+#         salt = bcrypt.gensalt()
+#         key = generate_key(master_password, salt)
+#         cipher_suite = Fernet(key)
+#         encrypted_number = cipher_suite.encrypt(number.encode())
+#         encrypted_expiry = cipher_suite.encrypt(expiry.encode())
+#         encrypted_cvv = cipher_suite.encrypt(cvv.encode())
+
+#         conn = sqlite3.connect('passwords.db')
+#         c = conn.cursor()
+
+#         c.execute("INSERT INTO creditCard (name, number, expiryDate, cvv, salt) VALUES (?, ?, ?, ?, ?)",
+#                   (name, encrypted_number, encrypted_expiry, encrypted_cvv, salt))
+#         conn.commit()
+#     except sqlite3.IntegrityError as e:
+#         # print(f"Error: Unable to add Credit Card.")
+#         conn.close()
+#         return 0   
+#     conn.close()
+#     return 1
+
+
+def add_credit_card(name, number, expiry, cvv, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+
+    try:
+        c.execute("SELECT number, salt FROM creditCard")
+        existing_cards = c.fetchall()
+
+        for encrypted_card, salt in existing_cards:
+            key = generate_key(master_password, salt)
+            cipher_suite = Fernet(key)
+            try:
+                decrypted_card = cipher_suite.decrypt(encrypted_card).decode()
+                if decrypted_card == number:
+                    conn.close()
+                    return 2
+            except Exception as e:
+                continue
+
+        salt = bcrypt.gensalt()
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        encrypted_number = cipher_suite.encrypt(number.encode())
+        encrypted_expiry = cipher_suite.encrypt(expiry.encode())
+        encrypted_cvv = cipher_suite.encrypt(cvv.encode())
+
+        c.execute("INSERT INTO creditCard (name, number, expiryDate, cvv, salt) VALUES (?, ?, ?, ?, ?)",
+                  (name, encrypted_number, encrypted_expiry, encrypted_cvv, salt))
+        conn.commit()
+
+    except sqlite3.IntegrityError as e:
+        conn.close()
+        return 0
+
+    conn.close()
+    return 1
+
+
+
+
+def get_credit_Card(name, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+
+    c.execute("SELECT name, number, expiryDate, cvv, salt FROM creditCard WHERE name = ?", (name,))
+    results = c.fetchall()
+    conn.close()
+
+    if not results:
+        print(f"No credit cards found for name '{name}'.")
+        return None
+
+    cards = []
+    for result in results:
+        encrypted_number = result[1]
+        encrypted_expiry = result[2]
+        encrypted_cvv = result[3]
+        salt = result[4]
+
+        key = generate_key(master_password, salt)
+
+        cipher_suite = Fernet(key)
+
+        try:
+            number = cipher_suite.decrypt(encrypted_number).decode()
+            expiry = cipher_suite.decrypt(encrypted_expiry).decode()
+            cvv = cipher_suite.decrypt(encrypted_cvv).decode()
+
+            cards.append((name, number, expiry, cvv))
+        except Exception as e:
+            cards.append((name, '---', '---', '---'))
+            # print(f"Error in decrypting card data for '{name}': {e}")
+            continue
+
+    return cards
+
+
+
+
+def get_password(service, email, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT encrypted_password, salt FROM passwords WHERE service = ? and email = ?", (service, email,))
+    result = c.fetchone()
+    conn.close()
+
+    if result:
+        encrypted_password, salt = result
+
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        try:
+            decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
+            return decrypted_password
+        except Exception as e:
+            # print(f"Error in decrtpting: {e}")
+            return None
+    else:
+        return None
+
+def get_enc_psw(service, email):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT encrypted_password, salt FROM passwords WHERE service = ? and email = ?", (service, email,))
+    result = c.fetchone()
+    conn.close()
+    # print(result)
+    return result[0]
+
+def get_note(service, email):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT note FROM passwords WHERE service = ? and email = ?", (service, email,))
+    result = c.fetchone()
+    conn.close()
+    return result if result else ""
+
+def get_mails(service):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT email FROM passwords WHERE service = ?", (service,))
+    results = c.fetchall()
+    conn.close()
+    return [result[0] for result in results]
+
+def del_credit_card(name, number, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    
+    c.execute("SELECT number, salt FROM creditCard WHERE name = ?", (name,))
+    result = c.fetchone()
+    
+    if result:
+        encrypted_number, salt = result
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        
+        try:
+            decrypted_number = cipher_suite.decrypt(encrypted_number).decode()
+            
+            if decrypted_number == number:
+                c.execute("DELETE FROM creditCard WHERE name = ? AND number = ?", (name, encrypted_number))
+                conn.commit()
+                conn.close()
+                return 1
+            else:
+                conn.close()
+                return 0
+        except Exception as e:
+            conn.close()
+            return 0
+    else:
+        conn.close()
+        return 2
+
+
+def remove_entry(service, email, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT encrypted_password, salt FROM passwords WHERE service = ? AND email = ?", (service, email))
+    result = c.fetchone()
+    
+    if result:
+        encrypted_password, salt = result
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        
+        try:
+            cipher_suite.decrypt(encrypted_password).decode()
+            c.execute("DELETE FROM passwords WHERE service = ? AND email = ?", (service, email))
+            conn.commit()
+            conn.close()
+            return 1 #entry correctly removed
+            # print(f"Entry for service '{service}' and email '{email}' removed.")
+        except Exception as e:
+            return 0 #error in decripting 
+            # print(f"Error in decrtpting: {e}")
+    else:
+        return 2 #entry not found
+        # print("No enrty to remove found.")
+
+def modify_entry(old_service, old_email, old_password, new_service, new_email, new_password, new_note, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT encrypted_password, salt FROM passwords WHERE service = ? AND email = ?", (old_service, old_email))
+    result = c.fetchone()
+
+    if result:
+        encrypted_password, salt = result
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
+            if old_password == decrypted_password:
+                c.execute("DELETE FROM passwords WHERE service = ? AND email = ?", (old_service, old_email))
+                conn.commit()
+                add_password(new_service, new_email, new_password, new_note, master_password)
+                conn.close()
+                return 0
+            else:
+                print("Old password is wrong. Impossible to modify the entry.")
+                return 1
+        except Exception as e:
+            print(f"Error in decrtpting: {e}")
+            return 2
+    else:
+        print("No enrty to modify found.")
+        return 3
+
+
+def print_all(master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT service, email, encrypted_password, note, salt FROM passwords ORDER BY service")
+    rows = c.fetchall()
+    conn.close()
+    if len(rows) == 0:
+        print("Database is empty.\n")
+        return [("---", "---", "---", "---")]
+    list = []
+    for row in rows:
+        service, email, encrypted_password, note, salt = row
+
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
+            # print(f"Service: '{service}', Email: '{email}', Password: '{decrypted_password}', Note: {note}")
+            list.append((service, email, decrypted_password, note))
+        except Exception as e:
+            list.append((service, email, "---", "---"))
+            print(f"Error in decrtpting for service '{service}' and email '{email}'.")
+            continue    
+    return list
+
+
+def delete_all(master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    
+    c.execute("SELECT service, email, encrypted_password, salt FROM passwords")
+    rows = c.fetchall()
+
+    for row in rows:
+        service, email, encrypted_password, salt = row
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            cipher_suite.decrypt(encrypted_password).decode()
+        except Exception as e:
+            conn.close()
+            return 0
+    
+    c.execute("SELECT name, number, salt FROM creditCard")
+    rows = c.fetchall()
+
+    for row in rows:
+        name, encrypted_number, salt = row
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            cipher_suite.decrypt(encrypted_number).decode()
+        except Exception as e:
+            conn.close()
+            return 0
+
+    c.execute("DELETE FROM passwords")
+    c.execute("DELETE FROM creditCard")
+    
+    conn.commit()
+    conn.close()
+    return 1
+
+
+def find_by_mail(email, master_password):
+    conn = sqlite3.connect('passwords.db')
+    c = conn.cursor()
+    c.execute("SELECT service, email, encrypted_password, note, salt FROM passwords WHERE email = ? ORDER BY service", (email,))
+
+    rows = c.fetchall()
+    conn.close()
+    if len(rows) == 0:
+        print(f"Account '{email}' is not linked to any service.\n")
+        return []
+    list = []
+    for row in rows:
+        service, email, encrypted_password, note, salt = row
+
+        key = generate_key(master_password, salt)
+        cipher_suite = Fernet(key)
+
+        try:
+            decrypted_password = cipher_suite.decrypt(encrypted_password).decode()
+            list.append((service, email, decrypted_password, note))
+            # print(f"Email: '{email}', Service: '{service}', Password: '{decrypted_password}', Note: {note}")
+        except Exception as e:
+            list.append((service, email, "---", "---"))
+            print(f"Error in decrtpting for service '{service}' and email '{email}'.")
+            continue    
+    return list
+
+
+
+
+def signal_handler(sig, frame):
+    print("\n\nProgram closed by user.")
+    sys.exit(0)
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
@@ -292,7 +714,6 @@ if __name__ == "__main__":
             else:
                 print("Insert a valid input: 1, 2, 3, 4, 5, 6, 7, i or Q.")
 
+            # print("#########################################################\n")
     except EOFError:
         signal_handler(signal.SIGINT, None)
-
-

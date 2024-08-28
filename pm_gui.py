@@ -333,10 +333,10 @@ def searchPassword(*args):
             for el in email:
                 psw = pm.get_password(service.lower(), el.lower(), masterPass_Input_Var.get())
                 note = pm.get_note(service, el)
-                if note:
-                    note = note[0]
-                else:
-                    note = ""
+                # if note:
+                #     note = note
+                # else:
+                #     note = ""
 
                 if psw:
                     frame_for_result = Frame(scrollable_frame)
@@ -514,15 +514,6 @@ def modifyPassword(*args): # 3 Modify Password Button
     oldPassword_Label.place(relx=0.3, rely=0.4, anchor=CENTER, x=-13)
     oldPassword_Input = Entry(displayFrame, width=30, textvariable=old_Password_Input_Var)
     oldPassword_Input.place(relx=0.4, rely=0.4, anchor=CENTER)
-
-    # old_Note_Input_Var = StringVar()
-    # old_note = old_Note_Input_Var.get()
-
-    # old_Note_Label = Label(displayFrame, text="Old Note :")
-    # old_Note_Label.place(relx=0.3, rely=0.5, anchor=CENTER)
-    # old_Note_Input = Entry(displayFrame, width=30, textvariable=old_Note_Input_Var)
-    # old_Note_Input.place(relx=0.4, rely=0.5, anchor=CENTER)
-    # old_Note_Input.config(state=DISABLED) #temp disable main funciton not implemented to be removed later
 
     new_service_Input_Var = StringVar()
     new_service = new_service_Input_Var.get()
@@ -776,18 +767,11 @@ def viewAll(*args):  # 5 View All Database
     loading_animation_label = None
 
     def loading_animation():
-        # dots = ""
-        # while not stop_animation.is_set():
-        #     dots += "."
-        #     if len(dots) > 5:
-        #         dots = ""
-        #     loading_animation_label.after(0, loading_animation_label.config, {"text": "Just a second" + dots})            
-        #     time.sleep(0.5)        
+     
         pass
 
     def stop_loading_animation():
-        # stop_animation.set()
-        # loading_animation_label.after(0, loading_animation_label.config, {"text": ""})        
+       
         pass
 
     def printAll(*args):  # 5 Result Display (View All)
@@ -1086,97 +1070,27 @@ def helpDisplay(*args):  # Button 8
 def quit(*args): #9
     sys.exit(0)
 
-# pm.create_db()
-
-#menu icons / buttons
-#previous value = 15
-button_width = 20
-
-menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
-
-F1_Text= "Add New Credentials"
-F1 = "(F1)"
-menuButton1 = ttk.Button(menuButtons, text=f"{F1_Text}\n{F1.center(33)}", bootstyle="primary-outline", command=addCreds, width=button_width)
-menuButton1.grid(row=0, column=0, padx=3, pady=10, ipady=10, ipadx=2)  # ipady aumenta l'altezza interna
-root.bind('<F1>', addCreds)
-menuButton1.configure(state=DISABLED)
-
-F2_Text= "Search a Password"
-F2 = "(F2)"
-menuButton2 = ttk.Button(menuButtons, text=f"{F2_Text}\n{F2.center(30)}", bootstyle="success-outline", command=searchPassword, width=button_width)
-menuButton2.grid(row=0, column=1, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F2>', searchPassword)
-menuButton2.configure(state=DISABLED)
-
-F3_Text= "Modify a Password"
-F3 = "(F3)"
-menuButton3 = ttk.Button(menuButtons, text=f"{F3_Text}\n{F3.center(30)}", bootstyle="info-outline", command=modifyPassword, width=button_width)
-menuButton3.grid(row=0, column=2, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F3>', modifyPassword)
-menuButton3.configure(state=DISABLED)
-
-F4_Text= "Delete a Password"
-F4 = "(F4)"
-menuButton4 = ttk.Button(menuButtons, text=f"{F4_Text}\n{F4.center(30)}", bootstyle="danger-outline", command=delEntry, width=button_width)
-menuButton4.grid(row=0, column=3, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F4>', delEntry)
-menuButton4.configure(state=DISABLED)
-
-F5_Text= "View All Database"
-F5 = "(F5)"
-menuButton5 = ttk.Button(menuButtons, text=f"{F5_Text}\n{F5.center(30)}", bootstyle="warning-outline", command=viewAll, width=button_width)
-menuButton5.grid(row=0, column=4, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F5>', viewAll)
-menuButton5.configure(state=DISABLED)
-
-F6_Text= "Search by Email"
-F6 = "(F6)"
-menuButton6 = ttk.Button(menuButtons, text=f"{F6_Text.center(20)}\n{F6.center(30)}", bootstyle="secondary-outline", command=searchByEmail, width=button_width)
-menuButton6.grid(row=0, column=5, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F6>', searchByEmail)
-menuButton6.configure(state=DISABLED)
-
-F7_Text= "Delete All Database"
-F7 = "(F7)"
-menuButton7 = ttk.Button(menuButtons, text=f"{F7_Text}\n{F7.center(30)}", bootstyle="info-outline", command=delDatabase, width=button_width)
-menuButton7.grid(row=0, column=6, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F7>', delDatabase)
-menuButton7.configure(state=DISABLED)
-
-F8_Text= "Help"
-F8 = "(F8)"
-menuButton8 = ttk.Button(menuButtons, text=f"{F8_Text.center(27)}\n{F8.center(30)}", bootstyle="dark-outline", command=helpDisplay, width=button_width)
-menuButton8.grid(row=0, column=7, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F8>', helpDisplay)
-menuButton8.configure(state=DISABLED)
-
-F9_Text= "Quit"
-F9 = "(F9)"
-menuButton9 = ttk.Button(menuButtons, text=f"{F9_Text.center(27)}\n{F9.center(30)}", bootstyle="danger", command=quit, width=button_width)
-menuButton9.grid(row=0, column=8, padx=3, pady=10, ipady=10, ipadx=2)
-root.bind('<F9>', quit)
-menuButton9.configure(state=DISABLED)
-
-menuButtons.pack(fill=BOTH)
-
-#mainFrame
-frame1 = LabelFrame(root, text='Home Page', bg='silver', relief=SOLID, bd=3)
-frame1.pack(expand=True, fill=BOTH, padx=5, pady=5)
-
-displayFrame = LabelFrame(frame1, text='', relief=FLAT, bd=3)
-displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
 
 
-helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."'\n''\n'"PROJECT LINK : github.com/Pietrob5/Password-Manager"
 
-defaultDisplay = Label(displayFrame, bg='silver', text=
-"\nPassword Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
-bd=4,font="helvatica", wraplength=900, padx=10, pady=10)
-defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
+
+
+
+
 
 
 # LOGIN
 def loginWindow():
+    menuButton1.configure(state=DISABLED)
+    menuButton2.configure(state=DISABLED)
+    menuButton3.configure(state=DISABLED)
+    menuButton4.configure(state=DISABLED)
+    menuButton5.configure(state=DISABLED)
+    menuButton6.configure(state=DISABLED)
+    menuButton7.configure(state=DISABLED)
+    menuButton8.configure(state=DISABLED)
+    menuButton9.configure(state=DISABLED)
+    
     resultWindow = Toplevel(root)
     resultWindow.geometry("900x400")
     resultWindow.title("LOGIN")    
@@ -1286,6 +1200,98 @@ def loginWindow():
     register_button = ttk.Button(loginFrame, text="Register", command=submit_signup, width=25)
     register_button.place(anchor=CENTER, relx=0.5, rely=0.6)
     register_button.bind('<Return>', submit_login)
+
+
+
+
+
+#menu icons / buttons
+
+button_width = 20
+
+menuButtons = Frame(root, relief='groove', borderwidth=1, bg='gray70', height=80)
+
+F1_Text= "Add New Credentials"
+F1 = "(F1)"
+menuButton1 = ttk.Button(menuButtons, text=f"{F1_Text}\n{F1.center(33)}", bootstyle="primary-outline", command=addCreds, width=button_width)
+menuButton1.grid(row=0, column=0, padx=3, pady=10, ipady=10, ipadx=2)  # ipady aumenta l'altezza interna
+root.bind('<F1>', addCreds)
+menuButton1.configure(state=DISABLED)
+
+F2_Text= "Search a Password"
+F2 = "(F2)"
+menuButton2 = ttk.Button(menuButtons, text=f"{F2_Text}\n{F2.center(30)}", bootstyle="success-outline", command=searchPassword, width=button_width)
+menuButton2.grid(row=0, column=1, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F2>', searchPassword)
+menuButton2.configure(state=DISABLED)
+
+F3_Text= "Modify a Password"
+F3 = "(F3)"
+menuButton3 = ttk.Button(menuButtons, text=f"{F3_Text}\n{F3.center(30)}", bootstyle="info-outline", command=modifyPassword, width=button_width)
+menuButton3.grid(row=0, column=2, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F3>', modifyPassword)
+menuButton3.configure(state=DISABLED)
+
+F4_Text= "Delete a Password"
+F4 = "(F4)"
+menuButton4 = ttk.Button(menuButtons, text=f"{F4_Text}\n{F4.center(30)}", bootstyle="danger-outline", command=delEntry, width=button_width)
+menuButton4.grid(row=0, column=3, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F4>', delEntry)
+menuButton4.configure(state=DISABLED)
+
+F5_Text= "View All Database"
+F5 = "(F5)"
+menuButton5 = ttk.Button(menuButtons, text=f"{F5_Text}\n{F5.center(30)}", bootstyle="warning-outline", command=viewAll, width=button_width)
+menuButton5.grid(row=0, column=4, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F5>', viewAll)
+menuButton5.configure(state=DISABLED)
+
+F6_Text= "Search by Email"
+F6 = "(F6)"
+menuButton6 = ttk.Button(menuButtons, text=f"{F6_Text.center(20)}\n{F6.center(30)}", bootstyle="secondary-outline", command=searchByEmail, width=button_width)
+menuButton6.grid(row=0, column=5, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F6>', searchByEmail)
+menuButton6.configure(state=DISABLED)
+
+F7_Text= "Logout"
+F7 = "(F7)"
+menuButton7 = ttk.Button(menuButtons, text=f"{F7_Text}\n{F7.center(10)}", bootstyle="info-outline", command=loginWindow, width=button_width)
+menuButton7.grid(row=0, column=6, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F7>', loginWindow)
+menuButton7.configure(state=DISABLED)
+
+F8_Text= "Help"
+F8 = "(F8)"
+menuButton8 = ttk.Button(menuButtons, text=f"{F8_Text.center(27)}\n{F8.center(30)}", bootstyle="dark-outline", command=helpDisplay, width=button_width)
+menuButton8.grid(row=0, column=7, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F8>', helpDisplay)
+menuButton8.configure(state=DISABLED)
+
+F9_Text= "Quit"
+F9 = "(F9)"
+menuButton9 = ttk.Button(menuButtons, text=f"{F9_Text.center(27)}\n{F9.center(30)}", bootstyle="danger", command=quit, width=button_width)
+menuButton9.grid(row=0, column=8, padx=3, pady=10, ipady=10, ipadx=2)
+root.bind('<F9>', quit)
+menuButton9.configure(state=DISABLED)
+
+menuButtons.pack(fill=BOTH)
+
+#mainFrame
+frame1 = LabelFrame(root, text='Home Page', bg='silver', relief=SOLID, bd=3)
+frame1.pack(expand=True, fill=BOTH, padx=5, pady=5)
+
+displayFrame = LabelFrame(frame1, text='', relief=FLAT, bd=3)
+displayFrame.pack(expand=True, fill=BOTH, padx=5, pady=5)
+
+
+helpText="Choose the desired service by selecting the corresponding buttons from above."'\n''\n'"WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!"'\n''\n'"You will need to remember the MASTER PASSWORD, as it cannot be stored in the database."'\n''\n'"In the email field, you can enter either the email address used for that account or a Username or UserID."'\n''\n'"You can modify the service, email, password, and/or notes for each entry. The operation OVERWRITES the old data."'\n''\n'"You can delete an entry by confirming the service, email, and password, losing the respective information PERMANENTLY."'\n''\n'"PROJECT LINK : github.com/Pietrob5/Password-Manager"
+
+defaultDisplay = Label(displayFrame, bg='silver', text=
+"\nPassword Manager by Stevees.\n\nPress any button from above to being OR 'Help' for full list of Info\n\n'WARNING: You must use the same MASTER PASSWORD for every password to add or search, otherwise the service cannot be provided!'",
+bd=4,font="helvatica", wraplength=900, padx=10, pady=10)
+defaultDisplay.place(anchor=CENTER, relx=0.5, rely=0.3)
+
+
 
 
 

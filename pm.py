@@ -162,7 +162,7 @@ def create_users_table():
 
 def generate_db_name(lenght=15):
 
-  chars = string.ascii_letters + "_"
+  chars = string.ascii_letters + "_" #26*2+1 possible char, 53^15=7.3*10^25 different possible strings
 
   db_name = ''.join(random.choice(chars) for _ in range(lenght))
 

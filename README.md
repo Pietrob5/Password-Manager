@@ -130,7 +130,7 @@ During registration, the master password is used to encrypt the name of the user
 This structure ensures that even if multiple users are accessing the application, their data remains isolated and encrypted.
 
 Simple scheme of Login/Signup:
-![login](image.png)
+![image](https://github.com/user-attachments/assets/1b2dc76e-5d5b-4245-91b5-8d558c534d81)
 
 ### Error Handling
 

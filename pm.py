@@ -1,6 +1,5 @@
-import sqlite3 
-import bcrypt # type: ignore
-from cryptography.fernet import Fernet # type: ignore
+import bcrypt
+from cryptography.fernet import Fernet
 import base64
 import sys
 import re
@@ -13,15 +12,18 @@ import os
 from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import errorcode
+import chiavi
 
 database_name = None
-load_dotenv(dotenv_path='.env')  
+
 
 
 #connect, initialize and setup database
 
 def generate_key(password, salt):
     password = password.encode()
+    if isinstance(salt, str):
+        salt = salt.encode()
     key = hashlib.pbkdf2_hmac('sha256', password, salt, 100000, dklen=32)  #100000 iterations, 32bytes = 256bit
     return base64.urlsafe_b64encode(key)
 
@@ -29,10 +31,10 @@ def initialize_db(db_name):
     global database_name
 
     config = {
-        'host': os.getenv('HOST'),
-        'user': os.getenv('USER'),
-        'password': os.getenv('PSW'),
-        'port': int(os.getenv('PORT'))
+        'host': chiavi.HOST,
+        'user': chiavi.USER,
+        'password': chiavi.PSW,
+        'port': chiavi.PORT
     }
 
     database_name = db_name
@@ -44,14 +46,13 @@ def initialize_db(db_name):
         try:
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS {database_name}")
         except mysql.connector.Error as err:
-            print(f"Errore nella creazione del database '{database_name}': {err}")
+            return 1
         
         cursor.close()
         conn.close()
 
         config['database'] = database_name
         conn = mysql.connector.connect(**config)
-        # print(f"Connesso al database '{database_name}' con successo.")
         
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -60,91 +61,106 @@ def initialize_db(db_name):
             print("Il database non esiste")
         else:
             print(err)
+        return 1
 
     finally:
         if 'conn' in locals() and conn.is_connected():
             conn.close()
-            # print("Connessione chiusa.")
     
-    create_db()
+    if create_db() == 1:
+        return 1
+    return 0
 
 
 def connect_existing_db(dbname):    #call this after login
     global database_name #sets database_name to be used to create connection
     database_name = dbname
-    
-    create_db()
+    if create_db() == 1:
+        return 1
+    return 0
 
 def create_connection():
     global database_name
     timeout = 15
-    connection = pymysql.connect(
-        charset="utf8mb4",
-        connect_timeout=timeout,
-        cursorclass=pymysql.cursors.DictCursor,
-        db=database_name,
-        host=os.getenv('HOST'),
-        password=os.getenv('PSW'),
-        read_timeout=timeout,
-        port=int(os.getenv('PORT')),
-        user=os.getenv('USER'),
-        write_timeout=timeout,
-    )
-    return connection
+    try: #this try except should be useless, is handled then
+        connection = pymysql.connect(
+            charset="utf8mb4",
+            connect_timeout=timeout,
+            cursorclass=pymysql.cursors.DictCursor,
+            db=database_name,
+            host=chiavi.HOST,
+            password=chiavi.PSW,
+            read_timeout=timeout,
+            port=chiavi.PORT,
+            user=chiavi.USER,
+            write_timeout=timeout,
+        )
+        return connection
+    except pymysql.MySQLError as err:
+        return None
 
 
 
 def create_db():
     global database_name
     conn = create_connection()
-    c = conn.cursor()
-    
-    c.execute('''CREATE TABLE IF NOT EXISTS creditCard (
-        id INT AUTO_INCREMENT PRIMARY KEY, 
-        name TEXT NOT NULL, 
-        number BLOB NOT NULL, 
-        expiryDate BLOB NOT NULL, 
-        cvv TEXT, 
-        salt BLOB NOT NULL, 
-        UNIQUE KEY unique_number (number(255))
-    )''')
-    
-    c.execute('''CREATE TABLE IF NOT EXISTS passwords (
-        id INT AUTO_INCREMENT PRIMARY KEY, 
-        service VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL,
-        encrypted_password BLOB NOT NULL, 
-        note TEXT, 
-        salt BLOB NOT NULL, 
-        CONSTRAINT un1 UNIQUE (service, email)
-    )''')
-    
-    conn.commit()
-    conn.close()
+    if conn == None:
+        return 1
+    try:
+        with conn.cursor() as c:
+            c.execute('''CREATE TABLE IF NOT EXISTS creditCard (
+                id INT AUTO_INCREMENT PRIMARY KEY, 
+                name TEXT NOT NULL, 
+                number BLOB NOT NULL, 
+                expiryDate BLOB NOT NULL, 
+                cvv TEXT, 
+                salt BLOB NOT NULL, 
+                UNIQUE KEY unique_number (number(255))
+            )''')
+        
+            c.execute('''CREATE TABLE IF NOT EXISTS passwords (
+                id INT AUTO_INCREMENT PRIMARY KEY, 
+                service VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                encrypted_password BLOB NOT NULL, 
+                note TEXT, 
+                salt BLOB NOT NULL, 
+                CONSTRAINT un1 UNIQUE (service, email)
+            )''')
+        
+        conn.commit()
+
+    finally:
+        conn.close()
 
 
 
 
 def create_users_db_connection():
     timeout = 15
-    connection = pymysql.connect(
-        charset="utf8mb4",
-        connect_timeout=timeout,
-        cursorclass=pymysql.cursors.DictCursor,
-        db="Users",
-        host=os.getenv('HOST'),
-        password=os.getenv('PSW'),
-        read_timeout=timeout,
-        port=int(os.getenv('PORT')),
-        user=os.getenv('USER'),
-        write_timeout=timeout,
-    )
-    return connection
+    try:
+        connection = pymysql.connect(
+            charset="utf8mb4",
+            connect_timeout=timeout,
+            cursorclass=pymysql.cursors.DictCursor,
+            db="Users",
+            host=chiavi.HOST,
+            password=chiavi.PSW,
+            read_timeout=timeout,
+            port=chiavi.PORT,
+            user=chiavi.USER,
+            write_timeout=timeout,
+        )
+        return connection
+    except pymysql.MySQLError as err:
+        return None
 
 
 def create_users_table():
 
     conn = create_users_db_connection()
+    if conn == None:
+        return 1
     try:
         with conn.cursor() as c:
             c.execute('''
@@ -157,8 +173,10 @@ def create_users_table():
                 )
             ''')
         conn.commit()
+
     finally:
         conn.close()
+        return 0
 
 def generate_db_name(lenght=15):
 
@@ -179,6 +197,8 @@ def add_user_to_users_table(username, master_password):
     encrypted_db_name = cipher_suite.encrypt(db_name.encode())
 
     conn = create_users_db_connection()
+    if conn == None:
+        return 0, "error"
     try:
         with conn.cursor() as c:
             c.execute('SELECT COUNT(*) FROM users WHERE username = %s', (username,))
@@ -193,9 +213,7 @@ def add_user_to_users_table(username, master_password):
             ''', (username, encrypted_db_name, salt))
         
         conn.commit()
-        # print(f"Utente '{username}' aggiunto con successo alla tabella 'users'.")
     except pymysql.IntegrityError as e:
-        # print(f"Errore: Impossibile aggiungere l'utente '{username}'.")
         return 0, "error"
     finally:
         conn.close()
@@ -206,6 +224,8 @@ def add_user_to_users_table(username, master_password):
 
 def get_db_name(username, master_password):
     conn = create_users_db_connection()
+    if conn == None:
+        return "er"
     try:
         with conn.cursor() as c:
             c.execute('SELECT db_name, salt FROM users WHERE username = %s', (username,))
@@ -273,10 +293,10 @@ def add_password(service, email, password, note, master_password):
         c.execute("INSERT INTO passwords (service, email, encrypted_password, note, salt) VALUES (%s, %s, %s, %s, %s)",
                   (service, email, encrypted_password, note, salt))
         conn.commit()
-        print("Password added successfully.")
+        # print("Password added successfully.")
 
-    except sqlite3.IntegrityError as e:
-        print(f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
+    except pymysql.IntegrityError as e:
+        # print(f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")
         conn.close()
         return 0
 
@@ -293,11 +313,13 @@ def add_credit_card(name, number, expiry, cvv, master_password):
         c.execute("SELECT number, salt FROM creditCard")
         existing_cards = c.fetchall()
 
-        for encrypted_card, salt in existing_cards:
-            key = generate_key(master_password, salt)
+        for el in existing_cards:
+            enc_number = el['number']
+            el_salt = el['salt']
+            key = generate_key(master_password, el_salt)
             cipher_suite = Fernet(key)
             try:
-                decrypted_card = cipher_suite.decrypt(encrypted_card).decode()
+                decrypted_card = cipher_suite.decrypt(enc_number).decode()
                 if decrypted_card == number:
                     conn.close()
                     return 2

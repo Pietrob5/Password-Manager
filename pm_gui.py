@@ -117,10 +117,21 @@ def addCreds(*args): # Button 1
     CreditCard = ttk.Button(displayFrame, text='Add Credit Card', width=25, command=credidCard, bootstyle=PRIMARY) 
     CreditCard.place(relx=0.5, rely=0.2, anchor=CENTER)
 
+
+def format_card_number(*args):
+    card_number = card_number_Input_Var.get()
+    card_number = re.sub(r'\D', '', card_number)
+    formatted_card_number = '-'.join(card_number[i:i+4] for i in range(0, len(card_number), 4))
+    card_number_Input_Var.set(formatted_card_number)
+    entry = card_number_Input
+    cursor_position = len(card_number) + (len(card_number) - 1) // 4
+    entry.icursor(cursor_position)
+
+
 def credidCard(*args):
     defaultDisplay_Hide()        
 
-    global masterPass_Input_Var, masterPass_ReEnter_Input_Var, card_name_Input_Var, card_number_Input_Var, expiry_Input_Var, cvv_Input_Var, credsSubmit
+    global masterPass_Input_Var, masterPass_ReEnter_Input_Var, card_name_Input_Var, card_number_Input_Var, expiry_Input_Var, cvv_Input_Var, credsSubmit, card_number_Input
 
     masterPass_Input_Var = StringVar()
     masterPass_ReEnter_Input_Var = StringVar()
@@ -128,6 +139,10 @@ def credidCard(*args):
     card_number_Input_Var = StringVar()
     expiry_Input_Var = StringVar()
     cvv_Input_Var = StringVar()
+
+    card_number_Input = Entry()  
+    card_number_Input_Var.trace_add("write", format_card_number)
+
 
     header_Label = Label(displayFrame, text="Add Credit Card", font=('Helvetica 14 bold underline')).place(relx=0.5, rely=0.1, anchor=CENTER)      
 
@@ -246,7 +261,7 @@ def credsSubmit_func(*args):
             break
 
         else:
-            messagebox.showinfo("Failed", f"Error: Unable to add password. An entry with service '{service}' and email '{email}' already exists.")            
+            messagebox.showinfo("Failed", f"Error: Unable to add password. A credential with service '{service}' and email '{email}' already exists.")            
             break                    
 
 
@@ -354,7 +369,7 @@ def searchPassword(*args):
                 else:
                     Label(scrollable_frame, text=f"Error in Decrypting for account {el}! Incorrect MASTER PASSWORD.", anchor="center").pack(pady=5, fill=X)
         else:
-            Label(scrollable_frame, text=f"Incorrect MASTER PASSWORD or the entry does not exist.", anchor="center").pack(pady=5, fill=X)
+            Label(scrollable_frame, text=f"Incorrect MASTER PASSWORD or the password does not exist.", anchor="center").pack(pady=5, fill=X)
         
         
 
@@ -592,7 +607,7 @@ def modifyPassword(*args): # 3 Modify Password Button
             messagebox.showinfo("Success", f"Credentials updated.")
             showDefaultDisplay()
         elif ret == 1:
-            messagebox.showinfo("Failed", "Old password is wrong. Impossible to modify the entry.")
+            messagebox.showinfo("Failed", "Old password is wrong. Impossible to modify the credential.")
         elif ret == 2:
             messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD.")
         elif ret == 3:
@@ -676,7 +691,7 @@ def delEntry(*args): #4
             elif pm.get_password(service_Input_Var.get().lower(), email_Input_Var.get().lower(), masterPass_Input_Var.get()) == None:
                 messagebox.showinfo("Failed", "Error in decrtpting. Wrong MASTER PASSWORD or service or email.")
             else:
-                messagebox.showinfo("Failed", "Wrong password. Cant't delete the entry.")
+                messagebox.showinfo("Failed", "Wrong password. Cant't delete the password.")
 
     credsSubmit = ttk.Button(displayFrame, text='Submit', width=25, command=delPsw, bootstyle=PRIMARY)
     credsSubmit.place(relx=0.5, rely=0.7, anchor=CENTER)        
@@ -1080,7 +1095,7 @@ def quit(*args): #9
 
 
 # LOGIN
-def loginWindow():
+def loginWindow(*args):
     menuButton1.configure(state=DISABLED)
     menuButton2.configure(state=DISABLED)
     menuButton3.configure(state=DISABLED)
@@ -1124,21 +1139,26 @@ def loginWindow():
         master_password = master_password_var.get()
 
         if username and master_password:
-            pm.create_users_table()
+            if pm.create_users_table() == 1:
+                error_label.config(text="Error with database. Try later!", fg="red")
+                pass
             ret, db_name = pm.add_user_to_users_table(username, master_password)
             if ret == 1:
-                pm.initialize_db(db_name) #initialize database for the user username. This has to be done only the first time he sings up
-                menuButton1.configure(state=NORMAL)
-                menuButton2.configure(state=NORMAL)
-                menuButton3.configure(state=NORMAL)
-                menuButton4.configure(state=NORMAL)
-                menuButton5.configure(state=NORMAL)
-                menuButton6.configure(state=NORMAL)
-                menuButton7.configure(state=NORMAL)
-                menuButton8.configure(state=NORMAL)
-                menuButton9.configure(state=NORMAL)
-                loginFrame.destroy()     
-                resultWindow.destroy()
+                r = pm.initialize_db(db_name) #initialize database for the user username. This has to be done only the first time he sings up
+                if r == 1:
+                    error_label.config(text="Error with database. Try later!", fg="red")
+                else:
+                    menuButton1.configure(state=NORMAL)
+                    menuButton2.configure(state=NORMAL)
+                    menuButton3.configure(state=NORMAL)
+                    menuButton4.configure(state=NORMAL)
+                    menuButton5.configure(state=NORMAL)
+                    menuButton6.configure(state=NORMAL)
+                    menuButton7.configure(state=NORMAL)
+                    menuButton8.configure(state=NORMAL)
+                    menuButton9.configure(state=NORMAL)
+                    loginFrame.destroy()     
+                    resultWindow.destroy()
             elif ret == 2:
                 error_label.config(text="User already exists. Login!", fg="red")
             elif ret == 0:
@@ -1148,7 +1168,7 @@ def loginWindow():
             error_label.config(text="Please fill in both fields!", fg="red")
         
 
-    def submit_login():
+    def submit_login(*args):
         username = username_var.get()
         master_password = master_password_var.get()
 
@@ -1159,19 +1179,24 @@ def loginWindow():
                 error_label.config(text="User not found. Register first!", fg="red")
             elif db_name == "mp":
                 error_label.config(text="Wrong Master Password!", fg="red")
+            elif db_name == "er":
+                error_label.config(text="Error with database. Try later!", fg="red")
             else:
-                pm.connect_existing_db(db_name)
-                menuButton1.configure(state=NORMAL)
-                menuButton2.configure(state=NORMAL)
-                menuButton3.configure(state=NORMAL)
-                menuButton4.configure(state=NORMAL)
-                menuButton5.configure(state=NORMAL)
-                menuButton6.configure(state=NORMAL)
-                menuButton7.configure(state=NORMAL)
-                menuButton8.configure(state=NORMAL)
-                menuButton9.configure(state=NORMAL)
-                loginFrame.destroy()     
-                resultWindow.destroy()
+                r = pm.connect_existing_db(db_name)
+                if r == 1:
+                    error_label.config(text="Error with database. Try later!", fg="red")
+                else:
+                    menuButton1.configure(state=NORMAL)
+                    menuButton2.configure(state=NORMAL)
+                    menuButton3.configure(state=NORMAL)
+                    menuButton4.configure(state=NORMAL)
+                    menuButton5.configure(state=NORMAL)
+                    menuButton6.configure(state=NORMAL)
+                    menuButton7.configure(state=NORMAL)
+                    menuButton8.configure(state=NORMAL)
+                    menuButton9.configure(state=NORMAL)
+                    loginFrame.destroy()     
+                    resultWindow.destroy()
         else:
             error_label.config(text="Please fill in both fields!", fg="red")
 
@@ -1199,7 +1224,9 @@ def loginWindow():
 
     register_button = ttk.Button(loginFrame, text="Register", command=submit_signup, width=25)
     register_button.place(anchor=CENTER, relx=0.5, rely=0.6)
-    register_button.bind('<Return>', submit_login)
+    password_entry.bind('<Return>', submit_login)
+    username_entry.bind('<Return>', submit_login)
+
 
 
 

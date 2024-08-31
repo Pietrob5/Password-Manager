@@ -31,6 +31,7 @@ nameLabel = Frame(root, relief='ridge', borderwidth=1, bg='gray80')
 namePlaceHolder = Label(nameLabel, text='Password Manager') #font text or image can be changed
 namePlaceHolder.pack(pady=10)
 nameLabel.pack(fill=X)
+root.state('zoomed') #for full screen at launch
 
 # masterPass_Input_Var, masterPass_ReEnter_Input_Var, service_Input_Var, password_Input_Var, email_Input_Var, note_Input_Var = [None]*6
 

@@ -1139,35 +1139,38 @@ def loginWindow(*args):
         username = username_var.get()
         master_password = master_password_var.get()
 
-        if username and master_password:
-            if pm.create_users_table() == 1:
-                error_label.config(text="Error with database. Try later!", fg="red")
-                pass
-            ret, db_name = pm.add_user_to_users_table(username, master_password)
-            if ret == 1:
-                r = pm.initialize_db(db_name) #initialize database for the user username. This has to be done only the first time he sings up
-                if r == 1:
-                    error_label.config(text="Error with database. Try later!", fg="red")
-                else:
-                    menuButton1.configure(state=NORMAL)
-                    menuButton2.configure(state=NORMAL)
-                    menuButton3.configure(state=NORMAL)
-                    menuButton4.configure(state=NORMAL)
-                    menuButton5.configure(state=NORMAL)
-                    menuButton6.configure(state=NORMAL)
-                    menuButton7.configure(state=NORMAL)
-                    menuButton8.configure(state=NORMAL)
-                    menuButton9.configure(state=NORMAL)
-                    loginFrame.destroy()     
-                    resultWindow.destroy()
-            elif ret == 2:
-                error_label.config(text="User already exists. Login!", fg="red")
-            elif ret == 0:
-                error_label.config(text="Error. Try Again!", fg="red")
-        
+        if not pm.is_valid_password(master_password):
+            error_label.config(text="Master Password is too simple.\nIt must be at least 10 characters long and contain at least one uppercase letter,\none lowercase letter, one number, and one special character.", fg="red")
         else:
-            error_label.config(text="Please fill in both fields!", fg="red")
-        
+            if username and master_password:
+                if pm.create_users_table() == 1:
+                    error_label.config(text="Error with database. Try later!", fg="red")
+                    pass
+                ret, db_name = pm.add_user_to_users_table(username, master_password)
+                if ret == 1:
+                    r = pm.initialize_db(db_name) #initialize database for the user username. This has to be done only the first time he sings up
+                    if r == 1:
+                        error_label.config(text="Error with database. Try later!", fg="red")
+                    else:
+                        menuButton1.configure(state=NORMAL)
+                        menuButton2.configure(state=NORMAL)
+                        menuButton3.configure(state=NORMAL)
+                        menuButton4.configure(state=NORMAL)
+                        menuButton5.configure(state=NORMAL)
+                        menuButton6.configure(state=NORMAL)
+                        menuButton7.configure(state=NORMAL)
+                        menuButton8.configure(state=NORMAL)
+                        menuButton9.configure(state=NORMAL)
+                        loginFrame.destroy()     
+                        resultWindow.destroy()
+                elif ret == 2:
+                    error_label.config(text="User already exists. Login!", fg="red")
+                elif ret == 0:
+                    error_label.config(text="Error. Try Again!", fg="red")
+            
+            else:
+                error_label.config(text="Please fill in both fields!", fg="red")
+            
 
     def submit_login(*args):
         username = username_var.get()

@@ -683,3 +683,9 @@ def signal_handler(sig, frame):
     print("\n\nProgram closed by user.")
     sys.exit(0)
 
+pattern = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}:;<>,.?/~])[A-Za-z\d!@#$%^&*()_+{}:;<>,.?/~]{10,}$'
+
+def is_valid_password(password):
+    if re.match(pattern, password):
+        return True
+    return False
